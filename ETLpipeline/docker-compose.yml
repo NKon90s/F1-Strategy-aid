@@ -1,0 +1,16 @@
+services:
+  db:
+    container_name: postgres_container
+    image: postgres:17.10
+    ports:
+      - 5000:5432 # because postgres use port 5432 by default. So I bind 5000 local port to it. 
+    environment:
+    # in real production avoid hardcoding passwords
+      POSTGRES_DB: db
+      POSTGRES_USER: db_user
+      POSTGRES_PASSWORD: db_password
+    volumes:
+      - ./database/data:/var/lib/postgresql/data
+
+  airflow:
+  
