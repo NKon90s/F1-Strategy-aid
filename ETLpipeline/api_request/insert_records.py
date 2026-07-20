@@ -1,484 +1,438 @@
-import api_request
 import psycopg2
 
-# endpoints, that need to be fetched: Intervals, Laps, Pit, Race control, Sessions, Starting grid, Stints, Weather, Car data, Position
 
- 
-def connect_to_db():
-    print("Connecting to PostgreSQL database...")
-    try:
-        conn = psycopg2.connect(
-            host = "localhost",
-            port = 5000,
-            dbname = "db",
-            user = "db_user",
-            password = "db_password"
-        )
-        return conn
-    except psycopg2.Error as e:
-        print(f"Database connection failed {e}")
-        raise  
+class InsertRecords:
+    def __init__(self, conn, session_data, meeting_data, drivers_data, interval_data, car_data, lap_data, pit_data,
+                 pos_data, race_data, grid_data, stint_data, weather_data):
+        
+        self.conn = conn
+        self.session_data = session_data
+        self.meeting_data = meeting_data
+        self.drivers_data = drivers_data
+        self.interval_data = interval_data
+        self.car_data = car_data
+        self.lap_data = lap_data
+        self.pit_data = pit_data
+        self.pos_data = pos_data
+        self.race_data = race_data
+        self.grid_data = grid_data
+        self.stint_data = stint_data
+        self.weather_data = weather_data
+        
+    def insert_session_data(self, conn, session_data):
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO dev.sessions(
+                    session_key,
+                    meeting_key,
+                    date_start,
+                    date_end,
+                    circuit_key,
+                    country_name,
+                    location,
+                    year,
+                    session_type,
+                    is_cancelled 
+                ) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (session_key)
+                DO NOTHING;
+            """,(
+                session_data['session_key'],
+                session_data['meeting_key'],
+                session_data['date_start'],
+                session_data['date_end'],
+                session_data['circuit_key'],
+                session_data['country_name'],
+                session_data['location'],
+                session_data['year'],
+                session_data['session_type'],
+                session_data['is_cancelled']
+            ))
+            conn.commit() 
+            print("Session data inserted successfully")
+        except psycopg2.Error as e:
+            print(f"Failed to insert session data {e}")
+            raise
 
 
-def create_table_sessions(conn):
-    try:
-        cursor = conn.cursor()
-        cursor.execute("""
-            CREATE SCHEMA IF NOT EXISTS dev;
-            CREATE TABLE IF NOT EXISTS dev.sessions(
-                       
-                session_key INT PRIMARY KEY,
-                meeting_key INT NOT NULL,
-                date_start TIMESTAMP NOT NULL,
-                date_end TIMESTAMP,
-                entry_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                circuit_key INT,
-                country_name VARCHAR,
-                location VARCHAR,
-                year INT,
-                session_type VARCHAR,
-                is_cancelled BOOL,
-                       
-                CONSTRAINT fk_meeting
-                    FOREIGN KEY (meeting_key)
-                    REFERENCES dev.meetings(meeting_key)
-           
-            );
-        """
-        )
-        conn.commit()
-        print("Table was created")
-    except psycopg2.Error as e:
-        print(f"Failed to create table {e}")
-        raise
+    def insert_session_data(self, conn, meeting_data):
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO dev.meetings(
+                    meeting_key,
+                    meeting_name,
+                    meeting_official_name,
+                    country_name,
+                    country_code,
+                    circuit_short_name,
+                    location,
+                    year,
+                    date_start
+                ) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (meeting_key)
+                DO NOTHING;
+
+            """,(
+                meeting_data['meeting_key'],
+                meeting_data['meeting_name'],
+                meeting_data['meeting_official_name'],
+                meeting_data['country_name'],
+                meeting_data['country_code'],
+                meeting_data['circuit_short_name'],
+                meeting_data['location'],
+                meeting_data['year'],
+                meeting_data['date_start']
+            ))
+            conn.commit()
+            print("Meeting data inserted successfully")
+        except psycopg2.Error as e:
+            print(f"Failed to insert meeting data {e}")
+            raise
 
 
-def create_table_meetings(conn):
-    try:
-        cursor = conn.cursor()
-        cursor.execute("""
-            CREATE SCHEMA IF NOT EXISTS dev;
-            CREATE TABLE IF NOT EXISTS dev.meetings(
+    def insert_drivers_data(self, conn, drivers_data):
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO dev.drivers(
+                    session_key,
+                    driver_number,
+                    full_name,
+                    team_name,
+                    team_colour,
+                    name_acronym,
+                    country_code
+                ) VALUES(%s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (session_key, driver_number)
+                DO UPDATE SET
+                    session_key = EXCLUDED.session_key,
+                    driver_number = EXCLUDED.driver_number,
+                    full_name = EXCLUDED.full_name,
+                    team_name = EXCLUDED.team_name,
+                    team_colour = EXCLUDED.team_colour,
+                    name_acronym = EXCLUDED.name_acronym,
+                    country_code = EXCLUDED.country_code; 
+
+            """,(
+                drivers_data['session_key'],
+                drivers_data['driver_number'],
+                drivers_data['full_name'],
+                drivers_data['team_name'],
+                drivers_data['team_colour'],
+                drivers_data['name_acronym'],
+                drivers_data['country_code']
                 
-                meeting_key INT PRIMARY KEY,
-                meeting_name TEXT,
-                meeting_official_name TEXT,
-                country_name TEXT,
-                country_code TEXT,
-                circuit_short_name TEXT,
-                location TEXT,
-                year INT,
-                date_start TIMESTAMP
-           
-            );
-        """
-        )
-        conn.commit()
-        print("Table was created")
-    except psycopg2.Error as e:
-        print(f"Failed to create table {e}")
-        raise
+            ))
+            conn.commit()
+            print("Drivers data inserted successfully")
+        except psycopg2.Error as e:
+            print(f"Failed to insert Drivers data {e}")
+            raise
 
-def create_table_drivers(conn):
-    try:
-        cursor = conn.cursor()
-        cursor.execute("""
-            CREATE SCHEMA IF NOT EXISTS dev;
-            CREATE TABLE IF NOT EXISTS dev.drivers(
+    def insert_interval_data(self, conn, interval_data):
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO dev.interval_data(
+                    meeting_key,
+                    session_key,
+                    date,
+                    driver_number,
+                    gap_to_leader,
+                    interval
+                ) VALUES(%s, %s, %s, %s, %s, %s)
+                ON CONFLICT (session_key, driver_number, date)
+                DO NOTHING; 
+            """,(
+                interval_data['meeting_key'],
+                interval_data['session_key'],
+                interval_data['date'],
+                interval_data['driver_number'],
+                interval_data['gap_to_leader'],
+                interval_data['interval']
                 
-                session_key INT,
-                driver_number INT,
-                full_name TEXT,
-                team_name TEXT,
-                team_colour TEXT,
-                name_acronym TEXT,
-                country_code TEXT,
-                
-                PRIMARY KEY (session_key, driver_number)
-                       
-                
-                
-            );
-        """
-        )
-        conn.commit()   
-        print("Table was created")
-    except psycopg2.Error as e:
-        print(f"Failed to create table {e}")
-        raise
+            ))
+            conn.commit()
+            print("Interval data inserted successfully")
+        except psycopg2.Error as e:
+            print(f"Failed to insert Interval data {e}")
+            raise
+    
+        
+    def insert_car_data(self, conn, car_data):
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO dev.car_data(
+                    meeting_key,
+                    session_key,
+                    brake,
+                    date,
+                    driver_number,
+                    drs, 
+                    n_gear,
+                    rpm,
+                    speed,
+                    throttle
+                ) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (session_key, driver_number, date)
+                DO NOTHING; 
+            """,(
+                car_data['meeting_key'],
+                car_data['session_key'],
+                car_data['brake'],
+                car_data['date'],
+                car_data['driver_number'],
+                car_data['drs'],
+                car_data['n_gear'],
+                car_data['rpm'],
+                car_data['speed'],
+                car_data['throttle']
+            ))
+            conn.commit()
+            print("Car data inserted successfully")
+        except psycopg2.Error as e:
+            print(f"Failed to insert Car data {e}")
+            raise
+
+    def insert_laps_data(self, conn, lap_data):
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO dev.laps(
+                    meeting_key,
+                    session_key,
+                    date_start,
+                    driver_number,
+                    duration_sector_1,
+                    duration_sector_2,
+                    duration_sector_3,
+                    i1_speed,
+                    i2_speed,
+                    is_pit_out_lap,
+                    lap_duration,
+                    lap_number,
+                    st_speed
+                ) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (session_key, driver_number, date_start)
+                DO NOTHING; 
+            """,(
+                lap_data['meeting_key'],
+                lap_data['session_key'],
+                lap_data['date_start'],
+                lap_data['driver_number'],
+                lap_data['duration_sector_1'],
+                lap_data['duration_sector_2'],
+                lap_data['duration_sector_3'],
+                lap_data['i1_speed'],
+                lap_data['i2_speed'],
+                lap_data['is_pit_out_lap'],
+                lap_data['lap_duration'],
+                lap_data['lap_number'],
+                lap_data['st_speed']
+            ))
+            conn.commit()
+            print("Lap data inserted successfully")
+        except psycopg2.Error as e:
+            print(f"Failed to insert Lap data {e}")
+            raise
 
 
-def create_table_intervals(conn):
-    try:
-        cursor = conn.cursor()
-        cursor.execute("""
-            CREATE SCHEMA IF NOT EXISTS dev;
-            CREATE TABLE IF NOT EXISTS dev.interval_data(
-                
-                id BIGSERIAL PRIMARY KEY,
-                meeting_key INT NOT NULL,
-                session_key INT NOT NULL,
-                date TIMESTAMP NOT NULL,
-                entry_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                driver_number INT NOT NULL,
-                gap_to_leader NUMERIC,
-                interval NUMERIC,
-                
-                CONSTRAINT fk_session
-                    FOREIGN KEY (session_key)
-                    REFERENCES dev.sessions(session_key),
-
-                CONSTRAINT fk_driver
-                    FOREIGN KEY (session_key, driver_number)
-                    REFERENCES dev.drivers(session_key, driver_number),
-                       
-                CONSTRAINT uq_interval
-                    UNIQUE (session_key, driver_number, date)
-            );
-        """
-        )
-        conn.commit()
-        print("Table was created")
-    except psycopg2.Error as e:
-        print(f"Failed to create table {e}")
-        raise
+    def insert_pit_data(self, conn, pit_data):
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO dev.pit(
+                    meeting_key,
+                    session_key,
+                    date,
+                    driver_number,
+                    lane_duration,
+                    lap_number,
+                    pit_duration,
+                    stop_duration
+                ) VALUES(%s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (session_key, driver_number, date)
+                DO NOTHING; 
+            """,(
+                pit_data['meeting_key'],
+                pit_data['session_key'],
+                pit_data['date'],
+                pit_data['driver_number'],
+                pit_data['lane_duration'],
+                pit_data['lap_number'],
+                pit_data['pit_duration'],
+                pit_data['stop_duration']
+            ))
+            conn.commit()
+            print("Pit data inserted successfully")
+        except psycopg2.Error as e:
+            print(f"Failed to insert Pit data {e}")
+            raise
 
 
-def create_table_car_data(conn):
-    try:
-        cursor = conn.cursor()
-        cursor.execute("""
-            CREATE SCHEMA IF NOT EXISTS dev;
-            CREATE TABLE IF NOT EXISTS dev.car_data(
-                
-                id BIGSERIAL PRIMARY KEY,
-                meeting_key INT NOT NULL,
-                session_key INT NOT NULL,
-                brake INT,
-                date TIMESTAMP,
-                entry_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                driver_number INT NOT NULL,
-                drs INT, 
-                n_gear INT,
-                rpm INT,
-                speed INT,
-                throttle INT,
-                
-                CONSTRAINT fk_session
-                    FOREIGN KEY (session_key)
-                    REFERENCES dev.sessions(session_key),
-
-                CONSTRAINT fk_driver
-                    FOREIGN KEY (session_key, driver_number)
-                    REFERENCES dev.drivers(session_key, driver_number),
-                
-                CONSTRAINT fk_meeting
-                    FOREIGN KEY (meeting_key)
-                    REFERENCES dev.meetings(meeting_key),
-                       
-                CONSTRAINT uq_car_data
-                    UNIQUE (session_key, driver_number, date)
-            );
-        """
-        )
-        conn.commit()
-        print("Table was created")
-    except psycopg2.Error as e:
-        print(f"Failed to create table {e}")
-        raise
+    def insert_position_data(self, conn, pos_data):
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO dev.position(
+                    meeting_key,
+                    session_key,
+                    date,
+                    driver_number,
+                    position
+                ) VALUES(%s, %s, %s, %s, %s)
+                ON CONFLICT (session_key)
+                DO NOTHING; 
+            """,(
+                pos_data['meeting_key'],
+                pos_data['session_key'],
+                pos_data['date'],
+                pos_data['driver_number'],
+                pos_data['position']
+            ))
+            conn.commit()
+            print("Position data inserted successfully")
+        except psycopg2.Error as e:
+            print(f"Failed to insert Position data {e}")
+            raise
 
 
 
-def create_table_laps(conn):
-    try:
-        cursor = conn.cursor()
-        cursor.execute("""
-            CREATE SCHEMA IF NOT EXISTS dev;
-            CREATE TABLE IF NOT EXISTS dev.laps(
-                
-                id BIGSERIAL PRIMARY KEY,
-                meeting_key INT NOT NULL,
-                session_key INT NOT NULL,
-                date_start TIMESTAMP,
-                entry_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                driver_number INT NOT NULL,
-                duration_sector_1 NUMERIC,
-                duration_sector_2 NUMERIC,
-                duration_sector_3 NUMERIC,
-                i1_speed INT,
-                i2_speed INT,
-                is_pit_out_lap BOOL,
-                lap_duration NUMERIC,
-                lap_number INT,
-                st_speed INT,
-                
-                CONSTRAINT fk_session
-                    FOREIGN KEY (session_key)
-                    REFERENCES dev.sessions(session_key),
-
-                CONSTRAINT fk_driver
-                    FOREIGN KEY (session_key, driver_number)
-                    REFERENCES dev.drivers(session_key, driver_number),
-                
-                CONSTRAINT fk_meeting
-                    FOREIGN KEY (meeting_key)
-                    REFERENCES dev.meetings(meeting_key),
-                       
-                CONSTRAINT uq_laps 
-                    UNIQUE (session_key, driver_number, date_start)
-            );
-        """
-        )
-        conn.commit()
-        print("Table was created")
-    except psycopg2.Error as e:
-        print(f"Failed to create table {e}")
-        raise
+    def insert_race_control_data(self, conn, race_data):
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO dev.race_control(
+                    meeting_key,
+                    session_key,
+                    date,
+                    driver_number,
+                    category,
+                    flag,
+                    lap_number,
+                    message,
+                    qualifying_phase,
+                    scope,
+                    sector
+                ) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (session_key, driver_number, date)
+                DO NOTHING; 
+            """,(
+                race_data['meeting_key'],
+                race_data['session_key'],
+                race_data['date'],
+                race_data['driver_number'],
+                race_data['category'],
+                race_data['flag'],
+                race_data['lap_number'],
+                race_data['message'],
+                race_data['qualifying_phase'],
+                race_data['scope'],
+                race_data['sector']
+            ))
+            conn.commit()
+            print("Race data inserted successfully")
+        except psycopg2.Error as e:
+            print(f"Failed to insert Race data {e}")
+            raise
 
 
-def create_table_pit(conn):
-    try:
-        cursor = conn.cursor()
-        cursor.execute("""
-            CREATE SCHEMA IF NOT EXISTS dev;
-            CREATE TABLE IF NOT EXISTS dev.pit(
-                
-                id BIGSERIAL PRIMARY KEY,
-                meeting_key INT NOT NULL,
-                session_key INT NOT NULL,
-                date TIMESTAMP,
-                entry_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                driver_number INT NOT NULL,
-                lane_duration NUMERIC,
-                lap_number INT,
-                pit_duration NUMERIC,
-                stop_duration NUMERIC,
-                
-                CONSTRAINT fk_session
-                    FOREIGN KEY (session_key)
-                    REFERENCES dev.sessions(session_key),
-
-                CONSTRAINT fk_driver
-                    FOREIGN KEY (session_key, driver_number)
-                    REFERENCES dev.drivers(session_key, driver_number),
-                
-                CONSTRAINT fk_meeting
-                    FOREIGN KEY (meeting_key)
-                    REFERENCES dev.meetings(meeting_key),
-                       
-                CONSTRAINT uq_pit
-                    UNIQUE (session_key, driver_number, date)
-            );
-        """
-        )
-        conn.commit()
-        print("Table was created")
-    except psycopg2.Error as e:
-        print(f"Failed to create table {e}")
-        raise
+    def insert_starting_grid_data(self, conn, grid_data):
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO dev.starting_grid(
+                    meeting_key,
+                    session_key,
+                    driver_number,
+                    lap_duration,
+                    position
+                ) VALUES(%s, %s, %s, %s, %s)
+                ON CONFLICT (session_key)
+                DO NOTHING; 
+            """,(
+                grid_data['meeting_key'],
+                grid_data['session_key'],
+                grid_data['driver_number'],
+                grid_data['lap_duration'],
+                grid_data['position']
+            ))
+            conn.commit()
+            print("Stint data inserted successfully")
+        except psycopg2.Error as e:
+            print(f"Failed to insert Stint data {e}")
+            raise
 
 
-def create_table_position(conn):
-    try:
-        cursor = conn.cursor()
-        cursor.execute("""
-            CREATE SCHEMA IF NOT EXISTS dev;
-            CREATE TABLE IF NOT EXISTS dev.position(
-                
-                id BIGSERIAL PRIMARY KEY,
-                meeting_key INT NOT NULL,
-                session_key INT NOT NULL,
-                date TIMESTAMP,
-                entry_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                driver_number INT NOT NULL,
-                position INT,
-                
-                CONSTRAINT fk_session
-                    FOREIGN KEY (session_key)
-                    REFERENCES dev.sessions(session_key),
-
-                CONSTRAINT fk_driver
-                    FOREIGN KEY (session_key, driver_number)
-                    REFERENCES dev.drivers(session_key, driver_number),
-                
-                CONSTRAINT fk_meeting
-                    FOREIGN KEY (meeting_key)
-                    REFERENCES dev.meetings(meeting_key),
-                       
-                CONSTRAINT uq_position
-                    UNIQUE (session_key, driver_number, date)
-            );
-        """
-        )
-        conn.commit()
-        print("Table was created")
-    except psycopg2.Error as e:
-        print(f"Failed to create table {e}")
-        raise
-
-def create_table_race_control(conn):
-    try:
-        cursor = conn.cursor()
-        cursor.execute("""
-            CREATE SCHEMA IF NOT EXISTS dev;
-            CREATE TABLE IF NOT EXISTS dev.race_control(
-                
-                id BIGSERIAL PRIMARY KEY,
-                meeting_key INT NOT NULL,
-                session_key INT NOT NULL,
-                date TIMESTAMP,
-                entry_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                driver_number INT,
-                category VARCHAR,
-                flag VARCHAR,
-                lap_number INT ,
-                message VARCHAR,
-                qualifying_phase INT,
-                scope VARCHAR,
-                sector INT,
-                
-                CONSTRAINT fk_session
-                    FOREIGN KEY (session_key)
-                    REFERENCES dev.sessions(session_key),
-
-                CONSTRAINT fk_driver
-                    FOREIGN KEY (session_key, driver_number)
-                    REFERENCES dev.drivers(session_key, driver_number),
-                
-                CONSTRAINT fk_meeting
-                    FOREIGN KEY (meeting_key)
-                    REFERENCES dev.meetings(meeting_key),
-                       
-                CONSTRAINT uq_race_control
-                    UNIQUE (session_key, driver_number, date)
-            );
-        """
-        )
-        conn.commit()
-        print("Table was created")
-    except psycopg2.Error as e:
-        print(f"Failed to create table {e}")
-        raise
+    def insert_stint_data(self, conn, stint_data):
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO dev.stints(
+                    meeting_key,
+                    session_key,
+                    driver_number,
+                    compound,
+                    lap_end,
+                    lap_start,
+                    stint_number,
+                    tyre_age_at_start
+                ) VALUES(%s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (session_key, driver_number, stint_number)
+                DO NOTHING; 
+            """,(
+                stint_data['meeting_key'],
+                stint_data['session_key'],
+                stint_data['driver_number'],
+                stint_data['compound'],
+                stint_data['lap_end'],
+                stint_data['lap_start'],
+                stint_data['stint_number'],
+                stint_data['tyre_age_at_start']
+            ))
+            conn.commit()
+            print("Stint data inserted successfully")
+        except psycopg2.Error as e:
+            print(f"Failed to insert Stint data {e}")
+            raise
 
 
-def create_table_starting_grid(conn):
-    try:
-        cursor = conn.cursor()
-        cursor.execute("""
-            CREATE SCHEMA IF NOT EXISTS dev;
-            CREATE TABLE IF NOT EXISTS dev.starting_grid(
-                
-                id BIGSERIAL PRIMARY KEY,
-                meeting_key INT NOT NULL,
-                session_key INT NOT NULL,
-                entry_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                driver_number INT NOT NULL,
-                lap_duration NUMERIC,
-                position INT,
-                 
-                CONSTRAINT fk_session
-                    FOREIGN KEY (session_key)
-                    REFERENCES dev.sessions(session_key),
+    def insert_weather_data(self, conn, weather_data):
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO dev.weather(
+                    meeting_key,
+                    session_key,
+                    date,
+                    air_temperature,
+                    humidity,
+                    pressure,
+                    rainfall,
+                    track_temperature,
+                    wind_direction,
+                    wind_speed
+                ) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (session_key, date)
+                DO NOTHING; 
+            """,(
+                weather_data['meeting_key'],
+                weather_data['session_key'],
+                weather_data['date'],
+                weather_data['air_temperature'],
+                weather_data['humidity'],
+                weather_data['pressure'],
+                weather_data['rainfall'],
+                weather_data['track_temperature'],
+                weather_data['wind_direction'],
+                weather_data['wind_speed']
+            ))
+            conn.commit()
+            print("Weather data inserted successfully")
+        except psycopg2.Error as e:
+            print(f"Failed to insert Weather data {e}")
+            raise
 
-                CONSTRAINT fk_driver
-                    FOREIGN KEY (session_key, driver_number)
-                    REFERENCES dev.drivers(session_key, driver_number),
-                
-                CONSTRAINT fk_meeting
-                    FOREIGN KEY (meeting_key)
-                    REFERENCES dev.meetings(meeting_key)
-                
-            );
-        """
-        )
-        conn.commit()
-        print("Table was created")
-    except psycopg2.Error as e:
-        print(f"Failed to create table {e}")
-        raise
-
-
-def create_table_stints(conn):
-    try:
-        cursor = conn.cursor()
-        cursor.execute("""
-            CREATE SCHEMA IF NOT EXISTS dev;
-            CREATE TABLE IF NOT EXISTS dev.stints(
-                
-                id BIGSERIAL PRIMARY KEY,
-                meeting_key INT NOT NULL,
-                session_key INT NOT NULL,
-                entry_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                driver_number INT NOT NULL,
-                compound VARCHAR,
-                lap_end INT,
-                lap_start INT,
-                stint_number INT,
-                tyre_age_at_start INT,
-                 
-                CONSTRAINT fk_session
-                    FOREIGN KEY (session_key)
-                    REFERENCES dev.sessions(session_key),
-
-                CONSTRAINT fk_driver
-                    FOREIGN KEY (session_key, driver_number)
-                    REFERENCES dev.drivers(session_key, driver_number),
-                
-                CONSTRAINT fk_meeting
-                    FOREIGN KEY (meeting_key)
-                    REFERENCES dev.meetings(meeting_key),
-                       
-                CONSTRAINT uq_car_stints
-                    UNIQUE (session_key, driver_number, stint_number)
-            );
-        """
-        )
-        conn.commit()
-        print("Table was created")
-    except psycopg2.Error as e:
-        print(f"Failed to create table {e}")
-        raise
-
-
-def create_table_weather(conn):
-    try:
-        cursor = conn.cursor()
-        cursor.execute("""
-            CREATE SCHEMA IF NOT EXISTS dev;
-            CREATE TABLE IF NOT EXISTS dev.weather(
-                
-                id BIGSERIAL PRIMARY KEY,
-                meeting_key INT NOT NULL,
-                session_key INT NOT NULL,
-                date TIMESTAMP NOT NULL,
-                entry_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                air_temperature NUMERIC,
-                humidity NUMERIC,
-                pressure NUMERIC,
-                rainfall INT,
-                track_temperature NUMERIC,
-                wind_direction INT,
-                wind_speed NUMERIC,
-                       
-                CONSTRAINT fk_session
-                    FOREIGN KEY (session_key)
-                    REFERENCES dev.sessions(session_key),
-                
-                CONSTRAINT fk_meeting
-                    FOREIGN KEY (meeting_key)
-                    REFERENCES dev.meetings(meeting_key),
-                       
-                CONSTRAINT uq_weather
-                    UNIQUE (session_key, date)
-            );
-        """
-        )
-        conn.commit()
-        print("Table was created")
-    except psycopg2.Error as e:
-        print(f"Failed to create table {e}")
-        raise
-
-
-conn = connect_to_db()
-create_table_meetings(conn)
