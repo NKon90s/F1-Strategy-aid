@@ -23,4 +23,4 @@ build/
 *.obs
 
 # database folder
-database/data/
+ETLpipeline/database/data/

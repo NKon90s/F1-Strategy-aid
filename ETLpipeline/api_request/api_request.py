@@ -8,7 +8,7 @@ from urllib3.util import Retry
 ######################################################################
 #
 #  This file is for storing the API calls needed for the data pipeline
-#
+#  
 ######################################################################
 
 class APIrequest:
@@ -103,7 +103,7 @@ class APIrequest:
                 time.sleep(safe_delay - elapsed)
                 
         return all_responses
-
+ 
 
 # ==========================================
 if __name__ == "__main__":
