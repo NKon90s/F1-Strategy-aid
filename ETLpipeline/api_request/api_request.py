@@ -39,13 +39,13 @@ class APIrequest:
 
         return sessions
     
-
+  
     # Selecting only race sessions
     def fetch_race_sessions(self, year: int):
-        """Fetches only the race sessions from all of the sessions"""
+        """Fetches only the race sessions from all of the sessions if they are not cancelled"""
 
         session_key = self.fetch_sessions(year)
-        race_sessions = [session for session in session_key if session["session_type"] == "Race"]
+        race_sessions = [session for session in session_key if session["session_type"] == "Race" and not session["is_cancelled"]]
         return [session['session_key'] for session in race_sessions]
     
 
@@ -68,7 +68,7 @@ class APIrequest:
     
 
     # fetching car data from the API
-    def fetch_f1_data(self,endpoint: str, query_params_list, req_per_window=25, window_seconds=10.0):
+    def fetch_f1_data(self, endpoint: str, query_params_list, req_per_window=25, window_seconds=10.0):
         """
         Fetches OpenF1 data chunk-by-chunk.
         
@@ -85,16 +85,16 @@ class APIrequest:
         safe_delay = window_seconds / req_per_window  # ~0.4 seconds per call
 
         for index, params in enumerate(query_params_list):
-            print(f"Request {index + 1}/{len(query_params_list)}: Filtering by {params}")
+            print(f"Request {index + 1}/{len(query_params_list)}: Filtering {endpoint} by {params}")
             
             start_time = time.time()
             
             try:
                 response = session.get(base_url, params=params)
                 response.raise_for_status()
-                all_responses.append(response.json())
+                all_responses.extend(response.json())
             except requests.exceptions.RequestException as e:
-                print(f"Failed pulling data for {params}: {e}")
+                print(f"Failed pulling {endpoint} data for {params}: {e}")
                 continue
             
             # Enforce rate regulation spacing

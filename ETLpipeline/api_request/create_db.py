@@ -31,9 +31,9 @@ class CreateDB:
             """
             )
             conn.commit()
-            print("Table was created")
+            print("Sessions Table was created")
         except psycopg2.Error as e:
-            print(f"Failed to create table {e}")
+            print(f"Failed to create Sessions table {e}")
             raise
 
 
@@ -58,9 +58,9 @@ class CreateDB:
             """
             )
             conn.commit()
-            print("Table was created")
+            print("Meetings Table was created")
         except psycopg2.Error as e:
-            print(f"Failed to create table {e}")
+            print(f"Failed to create Mettings table {e}")
             raise
 
     def create_table_drivers(self, conn):
@@ -83,9 +83,9 @@ class CreateDB:
             """
             )
             conn.commit()   
-            print("Table was created")
+            print("Drivers Table was created")
         except psycopg2.Error as e:
-            print(f"Failed to create table {e}")
+            print(f"Failed to create Drivers table {e}")
             raise
 
 
@@ -102,8 +102,8 @@ class CreateDB:
                     date TIMESTAMP NOT NULL,
                     entry_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     driver_number INT NOT NULL,
-                    gap_to_leader NUMERIC,
-                    interval NUMERIC,
+                    gap_to_leader TEXT,
+                    interval TEXT,
                     
                     CONSTRAINT fk_session
                         FOREIGN KEY (session_key)
@@ -119,9 +119,9 @@ class CreateDB:
             """
             )
             conn.commit()
-            print("Table was created")
+            print("Intervals Table was created")
         except psycopg2.Error as e:
-            print(f"Failed to create table {e}")
+            print(f"Failed to create Intervals table {e}")
             raise
 
 
@@ -163,9 +163,9 @@ class CreateDB:
             """
             )
             conn.commit()
-            print("Table was created")
+            print("Car Data Table was created")
         except psycopg2.Error as e:
-            print(f"Failed to create table {e}")
+            print(f"Failed to create Car Data table {e}")
             raise
 
 
@@ -211,9 +211,9 @@ class CreateDB:
             """
             )
             conn.commit()
-            print("Table was created")
+            print("Laps Table was created")
         except psycopg2.Error as e:
-            print(f"Failed to create table {e}")
+            print(f"Failed to create Laps table {e}")
             raise
 
 
@@ -253,9 +253,9 @@ class CreateDB:
             """
             )
             conn.commit()
-            print("Table was created")
+            print("Pit Table was created")
         except psycopg2.Error as e:
-            print(f"Failed to create table {e}")
+            print(f"Failed to create Pit table {e}")
             raise
 
 
@@ -292,9 +292,9 @@ class CreateDB:
             """
             )
             conn.commit()
-            print("Table was created")
+            print("Position Table was created")
         except psycopg2.Error as e:
-            print(f"Failed to create table {e}")
+            print(f"Failed to create Position table {e}")
             raise
 
     def create_table_race_control(self, conn):
@@ -336,9 +336,9 @@ class CreateDB:
             """
             )
             conn.commit()
-            print("Table was created")
+            print("Race Control Table was created")
         except psycopg2.Error as e:
-            print(f"Failed to create table {e}")
+            print(f"Failed to create Race Control table {e}")
             raise
 
 
@@ -372,9 +372,9 @@ class CreateDB:
             """
             )
             conn.commit()
-            print("Table was created")
+            print("Starting Grid Table was created")
         except psycopg2.Error as e:
-            print(f"Failed to create table {e}")
+            print(f"Failed to create Starting Grid table {e}")
             raise
 
 
@@ -414,9 +414,9 @@ class CreateDB:
             """
             )
             conn.commit()
-            print("Table was created")
+            print("Stints Table was created")
         except psycopg2.Error as e:
-            print(f"Failed to create table {e}")
+            print(f"Failed to create Stints table {e}")
             raise
 
 
@@ -454,9 +454,9 @@ class CreateDB:
             """
             )
             conn.commit()
-            print("Table was created")
+            print("Weather Table was created")
         except psycopg2.Error as e:
-            print(f"Failed to create table {e}")
+            print(f"Failed to create Weather table {e}")
             raise
 
  

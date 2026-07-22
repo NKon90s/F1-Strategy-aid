@@ -29,7 +29,9 @@ services:
     networks:
       - my-network
     command: >
-      bash -c "airflow db migrate && airflow standalone"
+      bash -c "airflow db migrate && airflow standalone"  
+
+    #airflow standalon is for dev purposes only. Do not use this in production.
 
 # Postgres and airflow will communicate through this network
 networks:

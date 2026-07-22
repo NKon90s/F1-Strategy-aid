@@ -1,5 +1,5 @@
 import psycopg2
-
+from psycopg2.extras import execute_values
 
 class InsertRecords:
     def __init__(self, conn, session_data, meeting_data, drivers_data, interval_data, car_data, lap_data, pit_data,
@@ -22,7 +22,24 @@ class InsertRecords:
     def insert_session_data(self, conn, session_data):
         try:
             cursor = conn.cursor()
-            cursor.execute("""
+            
+            rows = [
+                (
+                session['session_key'],
+                session['meeting_key'],
+                session['date_start'],
+                session['date_end'],
+                session['circuit_key'],
+                session['country_name'],
+                session['location'],
+                session['year'],
+                session['session_type'],
+                session['is_cancelled']
+                )
+                for session in session_data
+            ]
+            
+            sql = """
                 INSERT INTO dev.sessions(
                     session_key,
                     meeting_key,
@@ -34,21 +51,12 @@ class InsertRecords:
                     year,
                     session_type,
                     is_cancelled 
-                ) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ) VALUES %s
                 ON CONFLICT (session_key)
                 DO NOTHING;
-            """,(
-                session_data['session_key'],
-                session_data['meeting_key'],
-                session_data['date_start'],
-                session_data['date_end'],
-                session_data['circuit_key'],
-                session_data['country_name'],
-                session_data['location'],
-                session_data['year'],
-                session_data['session_type'],
-                session_data['is_cancelled']
-            ))
+            """
+            execute_values(cursor, sql, rows)
+
             conn.commit() 
             print("Session data inserted successfully")
         except psycopg2.Error as e:
@@ -56,10 +64,26 @@ class InsertRecords:
             raise
 
 
-    def insert_session_data(self, conn, meeting_data):
+    def insert_meeting_data(self, conn, meeting_data):
         try:
             cursor = conn.cursor()
-            cursor.execute("""
+
+            rows = [
+                (
+                meeting['meeting_key'],
+                meeting['meeting_name'],
+                meeting['meeting_official_name'],
+                meeting['country_name'],
+                meeting['country_code'],
+                meeting['circuit_short_name'],
+                meeting['location'],
+                meeting['year'],
+                meeting['date_start']
+                )   
+                for meeting in meeting_data
+            ]
+
+            sql = """
                 INSERT INTO dev.meetings(
                     meeting_key,
                     meeting_name,
@@ -70,21 +94,13 @@ class InsertRecords:
                     location,
                     year,
                     date_start
-                ) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ) VALUES %s
                 ON CONFLICT (meeting_key)
                 DO NOTHING;
 
-            """,(
-                meeting_data['meeting_key'],
-                meeting_data['meeting_name'],
-                meeting_data['meeting_official_name'],
-                meeting_data['country_name'],
-                meeting_data['country_code'],
-                meeting_data['circuit_short_name'],
-                meeting_data['location'],
-                meeting_data['year'],
-                meeting_data['date_start']
-            ))
+            """ 
+            execute_values(cursor, sql, rows)
+            
             conn.commit()
             print("Meeting data inserted successfully")
         except psycopg2.Error as e:
@@ -95,7 +111,20 @@ class InsertRecords:
     def insert_drivers_data(self, conn, drivers_data):
         try:
             cursor = conn.cursor()
-            cursor.execute("""
+            
+            rows = [(
+                driver['session_key'],
+                driver['driver_number'],
+                driver['full_name'],
+                driver['team_name'],
+                driver['team_colour'],
+                driver['name_acronym'],
+                driver['country_code']   
+                )
+                for driver in drivers_data
+            ]
+            
+            sql = """
                 INSERT INTO dev.drivers(
                     session_key,
                     driver_number,
@@ -104,7 +133,7 @@ class InsertRecords:
                     team_colour,
                     name_acronym,
                     country_code
-                ) VALUES(%s, %s, %s, %s, %s, %s, %s)
+                ) VALUES %s
                 ON CONFLICT (session_key, driver_number)
                 DO UPDATE SET
                     session_key = EXCLUDED.session_key,
@@ -115,26 +144,33 @@ class InsertRecords:
                     name_acronym = EXCLUDED.name_acronym,
                     country_code = EXCLUDED.country_code; 
 
-            """,(
-                drivers_data['session_key'],
-                drivers_data['driver_number'],
-                drivers_data['full_name'],
-                drivers_data['team_name'],
-                drivers_data['team_colour'],
-                drivers_data['name_acronym'],
-                drivers_data['country_code']
-                
-            ))
+            """
+            execute_values(cursor, sql, rows)
+
             conn.commit()
             print("Drivers data inserted successfully")
         except psycopg2.Error as e:
             print(f"Failed to insert Drivers data {e}")
             raise
 
+
     def insert_interval_data(self, conn, interval_data):
         try:
             cursor = conn.cursor()
-            cursor.execute("""
+
+            rows = [
+                (
+                interval['meeting_key'],
+                interval['session_key'],
+                interval['date'],
+                interval['driver_number'],
+                interval['gap_to_leader'],
+                interval['interval']
+                )
+                for interval in interval_data
+            ]
+
+            sql = """
                 INSERT INTO dev.interval_data(
                     meeting_key,
                     session_key,
@@ -142,18 +178,12 @@ class InsertRecords:
                     driver_number,
                     gap_to_leader,
                     interval
-                ) VALUES(%s, %s, %s, %s, %s, %s)
+                ) VALUES %s
                 ON CONFLICT (session_key, driver_number, date)
                 DO NOTHING; 
-            """,(
-                interval_data['meeting_key'],
-                interval_data['session_key'],
-                interval_data['date'],
-                interval_data['driver_number'],
-                interval_data['gap_to_leader'],
-                interval_data['interval']
-                
-            ))
+            """
+            execute_values(cursor, sql, rows)
+            
             conn.commit()
             print("Interval data inserted successfully")
         except psycopg2.Error as e:
@@ -164,7 +194,24 @@ class InsertRecords:
     def insert_car_data(self, conn, car_data):
         try:
             cursor = conn.cursor()
-            cursor.execute("""
+
+            rows = [
+                (
+                car['meeting_key'],
+                car['session_key'],
+                car['brake'],
+                car['date'],
+                car['driver_number'],
+                car['drs'],
+                car['n_gear'],
+                car['rpm'],
+                car['speed'],
+                car['throttle']
+                )
+                for car in car_data
+            ]
+
+            sql = """
                 INSERT INTO dev.car_data(
                     meeting_key,
                     session_key,
@@ -176,21 +223,12 @@ class InsertRecords:
                     rpm,
                     speed,
                     throttle
-                ) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ) VALUES %s
                 ON CONFLICT (session_key, driver_number, date)
                 DO NOTHING; 
-            """,(
-                car_data['meeting_key'],
-                car_data['session_key'],
-                car_data['brake'],
-                car_data['date'],
-                car_data['driver_number'],
-                car_data['drs'],
-                car_data['n_gear'],
-                car_data['rpm'],
-                car_data['speed'],
-                car_data['throttle']
-            ))
+            """
+            execute_values(cursor, sql, rows)
+
             conn.commit()
             print("Car data inserted successfully")
         except psycopg2.Error as e:
@@ -200,7 +238,27 @@ class InsertRecords:
     def insert_laps_data(self, conn, lap_data):
         try:
             cursor = conn.cursor()
-            cursor.execute("""
+            
+            rows= [
+                (
+                lap['meeting_key'],
+                lap['session_key'],
+                lap['date_start'],
+                lap['driver_number'],
+                lap['duration_sector_1'],
+                lap['duration_sector_2'],
+                lap['duration_sector_3'],
+                lap['i1_speed'],
+                lap['i2_speed'],
+                lap['is_pit_out_lap'],
+                lap['lap_duration'],
+                lap['lap_number'],
+                lap['st_speed']
+                )
+                for lap in lap_data
+            ]
+            
+            sql = """
                 INSERT INTO dev.laps(
                     meeting_key,
                     session_key,
@@ -215,24 +273,12 @@ class InsertRecords:
                     lap_duration,
                     lap_number,
                     st_speed
-                ) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ) VALUES %s
                 ON CONFLICT (session_key, driver_number, date_start)
                 DO NOTHING; 
-            """,(
-                lap_data['meeting_key'],
-                lap_data['session_key'],
-                lap_data['date_start'],
-                lap_data['driver_number'],
-                lap_data['duration_sector_1'],
-                lap_data['duration_sector_2'],
-                lap_data['duration_sector_3'],
-                lap_data['i1_speed'],
-                lap_data['i2_speed'],
-                lap_data['is_pit_out_lap'],
-                lap_data['lap_duration'],
-                lap_data['lap_number'],
-                lap_data['st_speed']
-            ))
+            """
+
+            execute_values(cursor, sql, rows)
             conn.commit()
             print("Lap data inserted successfully")
         except psycopg2.Error as e:
@@ -243,7 +289,22 @@ class InsertRecords:
     def insert_pit_data(self, conn, pit_data):
         try:
             cursor = conn.cursor()
-            cursor.execute("""
+            
+            rows = [
+                (
+                pit['meeting_key'],
+                pit['session_key'],
+                pit['date'],
+                pit['driver_number'],
+                pit['lane_duration'],
+                pit['lap_number'],
+                pit['pit_duration'],
+                pit['stop_duration']
+                )
+                for pit in pit_data
+            ]
+            
+            sql = """
                 INSERT INTO dev.pit(
                     meeting_key,
                     session_key,
@@ -253,19 +314,11 @@ class InsertRecords:
                     lap_number,
                     pit_duration,
                     stop_duration
-                ) VALUES(%s, %s, %s, %s, %s, %s, %s, %s)
+                ) VALUES %s
                 ON CONFLICT (session_key, driver_number, date)
                 DO NOTHING; 
-            """,(
-                pit_data['meeting_key'],
-                pit_data['session_key'],
-                pit_data['date'],
-                pit_data['driver_number'],
-                pit_data['lane_duration'],
-                pit_data['lap_number'],
-                pit_data['pit_duration'],
-                pit_data['stop_duration']
-            ))
+            """
+            execute_values(cursor, sql, rows)
             conn.commit()
             print("Pit data inserted successfully")
         except psycopg2.Error as e:
@@ -276,23 +329,31 @@ class InsertRecords:
     def insert_position_data(self, conn, pos_data):
         try:
             cursor = conn.cursor()
-            cursor.execute("""
+            
+            rows = [
+                (
+                pos['meeting_key'],
+                pos['session_key'],
+                pos['date'],
+                pos['driver_number'],
+                pos['position']
+                )
+                for pos in pos_data
+            ]
+            
+            sql = """
                 INSERT INTO dev.position(
                     meeting_key,
                     session_key,
                     date,
                     driver_number,
                     position
-                ) VALUES(%s, %s, %s, %s, %s)
-                ON CONFLICT (session_key)
+                ) VALUES %s
+                ON CONFLICT (session_key, driver_number, date)
                 DO NOTHING; 
-            """,(
-                pos_data['meeting_key'],
-                pos_data['session_key'],
-                pos_data['date'],
-                pos_data['driver_number'],
-                pos_data['position']
-            ))
+            """
+            execute_values(cursor, sql, rows)
+
             conn.commit()
             print("Position data inserted successfully")
         except psycopg2.Error as e:
@@ -304,7 +365,25 @@ class InsertRecords:
     def insert_race_control_data(self, conn, race_data):
         try:
             cursor = conn.cursor()
-            cursor.execute("""
+
+            rows = [
+                (
+                race['meeting_key'],
+                race['session_key'],
+                race['date'],
+                race['driver_number'],
+                race['category'],
+                race['flag'],
+                race['lap_number'],
+                race['message'],
+                race['qualifying_phase'],
+                race['scope'],
+                race['sector']
+                )
+                for race in race_data
+            ]
+
+            sql = """
                 INSERT INTO dev.race_control(
                     meeting_key,
                     session_key,
@@ -317,22 +396,12 @@ class InsertRecords:
                     qualifying_phase,
                     scope,
                     sector
-                ) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ) VALUES %s
                 ON CONFLICT (session_key, driver_number, date)
                 DO NOTHING; 
-            """,(
-                race_data['meeting_key'],
-                race_data['session_key'],
-                race_data['date'],
-                race_data['driver_number'],
-                race_data['category'],
-                race_data['flag'],
-                race_data['lap_number'],
-                race_data['message'],
-                race_data['qualifying_phase'],
-                race_data['scope'],
-                race_data['sector']
-            ))
+            """
+            execute_values(cursor, sql, rows)
+
             conn.commit()
             print("Race data inserted successfully")
         except psycopg2.Error as e:
@@ -343,23 +412,31 @@ class InsertRecords:
     def insert_starting_grid_data(self, conn, grid_data):
         try:
             cursor = conn.cursor()
-            cursor.execute("""
+
+            rows = [
+                (
+                grid['meeting_key'],
+                grid['session_key'],
+                grid['driver_number'],
+                grid['lap_duration'],
+                grid['position']
+                )
+                for grid in grid_data
+            ]
+
+            sql = """
                 INSERT INTO dev.starting_grid(
                     meeting_key,
                     session_key,
                     driver_number,
                     lap_duration,
                     position
-                ) VALUES(%s, %s, %s, %s, %s)
+                ) VALUES %s
                 ON CONFLICT (session_key)
                 DO NOTHING; 
-            """,(
-                grid_data['meeting_key'],
-                grid_data['session_key'],
-                grid_data['driver_number'],
-                grid_data['lap_duration'],
-                grid_data['position']
-            ))
+            """
+            execute_values(cursor, sql, rows)
+
             conn.commit()
             print("Stint data inserted successfully")
         except psycopg2.Error as e:
@@ -370,7 +447,22 @@ class InsertRecords:
     def insert_stint_data(self, conn, stint_data):
         try:
             cursor = conn.cursor()
-            cursor.execute("""
+            
+            rows = [
+                (
+                stint['meeting_key'],
+                stint['session_key'],
+                stint['driver_number'],
+                stint['compound'],
+                stint['lap_end'],
+                stint['lap_start'],
+                stint['stint_number'],
+                stint['tyre_age_at_start']
+                )
+                for stint in stint_data
+            ]
+
+            sql = """
                 INSERT INTO dev.stints(
                     meeting_key,
                     session_key,
@@ -380,19 +472,13 @@ class InsertRecords:
                     lap_start,
                     stint_number,
                     tyre_age_at_start
-                ) VALUES(%s, %s, %s, %s, %s, %s, %s, %s)
+                ) VALUES %s
                 ON CONFLICT (session_key, driver_number, stint_number)
                 DO NOTHING; 
-            """,(
-                stint_data['meeting_key'],
-                stint_data['session_key'],
-                stint_data['driver_number'],
-                stint_data['compound'],
-                stint_data['lap_end'],
-                stint_data['lap_start'],
-                stint_data['stint_number'],
-                stint_data['tyre_age_at_start']
-            ))
+            """
+
+            execute_values(cursor, sql, rows)
+
             conn.commit()
             print("Stint data inserted successfully")
         except psycopg2.Error as e:
@@ -403,7 +489,24 @@ class InsertRecords:
     def insert_weather_data(self, conn, weather_data):
         try:
             cursor = conn.cursor()
-            cursor.execute("""
+            
+            rows = [
+                (
+                weather['meeting_key'],
+                weather['session_key'],
+                weather['date'],
+                weather['air_temperature'],
+                weather['humidity'],
+                weather['pressure'],
+                weather['rainfall'],
+                weather['track_temperature'],
+                weather['wind_direction'],
+                weather['wind_speed']
+                )
+                for weather in weather_data
+            ]
+            
+            sql = """
                 INSERT INTO dev.weather(
                     meeting_key,
                     session_key,
@@ -414,22 +517,13 @@ class InsertRecords:
                     rainfall,
                     track_temperature,
                     wind_direction,
-                    wind_speed
-                ) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    wind_speed 
+                ) VALUES %s
                 ON CONFLICT (session_key, date)
                 DO NOTHING; 
-            """,(
-                weather_data['meeting_key'],
-                weather_data['session_key'],
-                weather_data['date'],
-                weather_data['air_temperature'],
-                weather_data['humidity'],
-                weather_data['pressure'],
-                weather_data['rainfall'],
-                weather_data['track_temperature'],
-                weather_data['wind_direction'],
-                weather_data['wind_speed']
-            ))
+            """
+            execute_values(cursor, sql, rows)
+
             conn.commit()
             print("Weather data inserted successfully")
         except psycopg2.Error as e:
