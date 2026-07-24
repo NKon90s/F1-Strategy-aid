@@ -95,4 +95,5 @@ def data_to_db():
    
     
 if __name__ == "__main__":
+    create_database()
     data_to_db()
