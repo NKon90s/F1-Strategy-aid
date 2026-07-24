@@ -3,10 +3,11 @@ from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
 import sys
 
+sys.path.append('/opt/airflow/api_request')
 
 def safe_main_callabel():
-    from main import main
-    return main()
+    from main import data_to_db
+    return data_to_db()
 
 default_args = {
     'description': 'A DAG to orchestrate data',
