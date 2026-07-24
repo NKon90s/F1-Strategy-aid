@@ -4,10 +4,8 @@ import create_db
 import insert_records
 
 # meetings -> sessions -> drivers-> the rest
- 
-def data_to_db():
 
-    # establishing the connection to the DB and creating the tables
+def create_database():
     conn = db_connector.connect_to_db()
     try:
         create_table = create_db.CreateDB(conn)
@@ -24,12 +22,25 @@ def data_to_db():
         create_table.create_table_stints(conn)
         create_table.create_table_weather(conn)
 
+    except Exception as e:
+        print(f"ETL failed: {e}")
+        raise
+            
+    finally:
+        conn.close()
+        print("Database connection closed.")
+ 
+def data_to_db():
+
+    # establishing the connection to the DB
+    conn = db_connector.connect_to_db()
+    try:
         year = 2023
 
         f1_request = api_request.APIrequest(year)
 
         race_sessions = f1_request.fetch_race_sessions(year)
-        
+            
 
         meeting_workload = [{"year": year}]
         session_workload = [{"session_key": session_key} for session_key in race_sessions]
@@ -46,7 +57,7 @@ def data_to_db():
             }
             for driver in drivers_data
         ]
-        
+            
         interval_data = f1_request.fetch_f1_data(endpoint='intervals',query_params_list=workload)
         car_data = f1_request.fetch_f1_data(endpoint='car_data',query_params_list=workload)
         lap_data = f1_request.fetch_f1_data(endpoint='laps',query_params_list=workload)
@@ -59,8 +70,8 @@ def data_to_db():
 
         # Inserting data into the created tables
         insert_table = insert_records.InsertRecords(conn, session_data, meeting_data, drivers_data, interval_data, car_data, lap_data, pit_data,
-                    pos_data, race_data, grid_data, stint_data, weather_data)
-        
+                        pos_data, race_data, grid_data, stint_data, weather_data)
+            
         insert_table.insert_meeting_data(conn, meeting_data)
         insert_table.insert_session_data(conn, session_data)
         insert_table.insert_drivers_data(conn, drivers_data)
@@ -73,14 +84,15 @@ def data_to_db():
         insert_table.insert_starting_grid_data(conn, grid_data)
         insert_table.insert_stint_data(conn, stint_data)
         insert_table.insert_weather_data(conn, weather_data)
-        
+
     except Exception as e:
         print(f"ETL failed: {e}")
         raise
-    
+                
     finally:
         conn.close()
         print("Database connection closed.")
+   
     
 if __name__ == "__main__":
     data_to_db()

@@ -105,17 +105,3 @@ class APIrequest:
         return all_responses
  
 
-# ==========================================
-if __name__ == "__main__":
-    # Target a specific F1 session key
-    target_session = 9161 
-    driver_numbers = [1, 11, 44, 63, 16, 55, 4, 81, 14, 10]
-    
-    # Chunk your workload into separate driver queries to lower individual response sizes
-    workload = [{"session_key": target_session, "driver_number": num} for num in driver_numbers]
-    
-    print("Starting regulated OpenF1 Data Pipeline...")
-    race_laps = APIrequest(2023)
-    laps = race_laps.fetch_f1_data(endpoint="laps", query_params_list=workload)
-    print(f"Successfully processed {len(laps)} driver datasets.")
-    print(laps)
