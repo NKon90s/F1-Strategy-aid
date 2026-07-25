@@ -76,7 +76,6 @@ class CreateDB:
                     team_name TEXT,
                     team_colour TEXT,
                     name_acronym TEXT,
-                    country_code TEXT,
                     
                     PRIMARY KEY (session_key, driver_number)                       
                 );
@@ -367,7 +366,10 @@ class CreateDB:
                     
                     CONSTRAINT fk_meeting
                         FOREIGN KEY (meeting_key)
-                        REFERENCES dev.meetings(meeting_key)
+                        REFERENCES dev.meetings(meeting_key),
+
+                    CONSTRAINT uq_starting_grid
+                        UNIQUE (meeting_key, session_key, driver_number)
                 );
             """
             )
