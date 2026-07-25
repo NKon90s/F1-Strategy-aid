@@ -118,8 +118,7 @@ class InsertRecords:
                 driver['full_name'],
                 driver['team_name'],
                 driver['team_colour'],
-                driver['name_acronym'],
-                driver['country_code']   
+                driver['name_acronym']  
                 )
                 for driver in drivers_data
             ]
@@ -131,8 +130,7 @@ class InsertRecords:
                     full_name,
                     team_name,
                     team_colour,
-                    name_acronym,
-                    country_code
+                    name_acronym
                 ) VALUES %s
                 ON CONFLICT (session_key, driver_number)
                 DO UPDATE SET
@@ -141,8 +139,7 @@ class InsertRecords:
                     full_name = EXCLUDED.full_name,
                     team_name = EXCLUDED.team_name,
                     team_colour = EXCLUDED.team_colour,
-                    name_acronym = EXCLUDED.name_acronym,
-                    country_code = EXCLUDED.country_code; 
+                    name_acronym = EXCLUDED.name_acronym;
 
             """
             execute_values(cursor, sql, rows)
@@ -422,7 +419,7 @@ class InsertRecords:
                 grid['position']
                 )
                 for grid in grid_data
-            ]
+            ] 
 
             sql = """
                 INSERT INTO dev.starting_grid(
@@ -432,15 +429,15 @@ class InsertRecords:
                     lap_duration,
                     position
                 ) VALUES %s
-                ON CONFLICT (session_key)
+                ON CONFLICT (meeting_key, session_key, driver_number)
                 DO NOTHING; 
             """
             execute_values(cursor, sql, rows)
 
             conn.commit()
-            print("Stint data inserted successfully")
+            print("Grid data inserted successfully")
         except psycopg2.Error as e:
-            print(f"Failed to insert Stint data {e}")
+            print(f"Failed to insert Grid data {e}")
             raise
 
 
