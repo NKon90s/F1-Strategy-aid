@@ -5,7 +5,7 @@ def connect_to_db():
     try:
         conn = psycopg2.connect(
             host = "localhost",
-            port = 5000,
+            port = 5432,
             dbname = "db",
             user = "db_user",
             password = "db_password"
