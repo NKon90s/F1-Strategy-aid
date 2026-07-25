@@ -31,7 +31,7 @@ services:
     command: >
       bash -c "airflow db migrate && airflow standalone"  
 
-    #airflow standalon is for dev purposes only. Do not use this in production.
+    #airflow standalone is for dev purposes only. Do not use this in production.
 
 # Postgres and airflow will communicate through this network
 networks:

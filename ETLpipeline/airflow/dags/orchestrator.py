@@ -1,11 +1,18 @@
 from airflow import DAG
 from datetime import datetime, timedelta
 import sys
+from airflow.providers.standard.operators.python import PythonOperator
+
 
 sys.path.append('/opt/airflow/api_request')
 
-def safe_main_callabel():
-    pass
+def safe_create_db_callabel():
+    from main import create_database
+    return create_database()
+
+def safe_data_to_db_callabel():
+    from main import data_to_db
+    return data_to_db()
 
 default_args = {
     'description': 'A DAG to orchestrate data',
