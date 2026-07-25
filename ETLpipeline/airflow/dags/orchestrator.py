@@ -6,7 +6,6 @@ from api_request.main import create_database, data_to_db
 
 sys.path.append('/opt/airflow/api_request')
 
-
 default_args = {
     'description': 'A DAG to orchestrate data',
     'start_date' : datetime(2026, 7, 22),
