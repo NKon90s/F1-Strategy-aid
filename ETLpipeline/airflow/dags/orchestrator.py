@@ -2,17 +2,10 @@ from airflow import DAG
 from datetime import datetime, timedelta
 import sys
 from airflow.providers.standard.operators.python import PythonOperator
-
+from api_request.main import create_database, data_to_db
 
 sys.path.append('/opt/airflow/api_request')
 
-def safe_create_db_callabel():
-    from main import create_database
-    return create_database()
-
-def safe_data_to_db_callabel():
-    from main import data_to_db
-    return data_to_db()
 
 default_args = {
     'description': 'A DAG to orchestrate data',
@@ -26,7 +19,9 @@ dag = DAG(
     schedule = timedelta(weeks=1)
 )
 
-
 with dag:
-    pass
+    task1 = PythonOperator(
+        task_id = 'create_db_task',
+        python_callable = create_database
+    )
 
