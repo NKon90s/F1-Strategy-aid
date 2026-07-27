@@ -2,19 +2,20 @@ from airflow import DAG
 from datetime import datetime, timedelta
 import sys
 from airflow.providers.standard.operators.python import PythonOperator
-from api_request.main import create_database, data_to_db
 
-sys.path.append('/opt/airflow/api_request')
+sys.path.append('/opt/airflow')
+
+from api_request.main import create_database, data_to_db
 
 default_args = {
     'description': 'A DAG to orchestrate data',
-    'start_date' : datetime(2026, 7, 22),
+    'start_date' : datetime(2026, 7, 26),
     'catchup': False,
 }
 
 dag = DAG(
     dag_id = 'f1-api-orchestrator',
-    default_arg = default_args,
+    default_args = default_args,
     schedule = timedelta(weeks=1)
 )
 
@@ -24,4 +25,8 @@ with dag:
         python_callable = create_database
     )
 
+    task2 = PythonOperator(
+            task_id = 'insert_data_task',
+            python_callable = data_to_db
+        )
 
