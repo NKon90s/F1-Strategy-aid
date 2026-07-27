@@ -1,5 +1,5 @@
 services:
-  db: 
+  db:  
     container_name: postgres_container
     image: postgres:17.10
     ports:
@@ -29,12 +29,28 @@ services:
       - db
     networks:
       - my-network
-    command: >
+    command: > 
       bash -c "airflow db migrate && airflow standalone"  
 
     #airflow standalone is for dev purposes only. Do not use this in production.
 
-# Postgres and airflow will communicate through this network
+  dbt:
+    container_name: dbt_container
+    image: ghcr.io/dbt-labs/dbt-postgres:1.9.latest #found on github
+    volumes:
+      - ./dbt/my_project:/usr/app
+      - ./dbt:/root/.dbt
+    working_dir: /usr/app
+    environment:
+      DBT_PROFILES_DIR: "/root/.dbt"
+    depends_on:
+      - db
+    networks:
+      - my-network
+    command: run
+
+
+# Postgres, dbt and airflow will communicate through this network
 networks:
   my-network:
     driver: bridge 

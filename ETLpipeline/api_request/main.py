@@ -1,7 +1,7 @@
-import api_request
-import db_connector
-import create_db
-import insert_records
+from . import api_request
+from . import db_connector
+from . import create_db
+from . import insert_records
 
 # meetings -> sessions -> drivers-> the rest
 
