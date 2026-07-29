@@ -1,0 +1,20 @@
+version: 2
+
+sources:
+  - name: dev
+    database: db 
+    tables: 
+      - name: meetings
+      - name: sessions
+      - name: drivers
+      - name: interval_data
+      - name: car_data
+      - name: laps
+      - name: pit
+      - name: position
+      - name: race_control
+      - name: starting_grid
+      - name: stints
+      - name: weather
+
+      

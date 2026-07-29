@@ -3,7 +3,7 @@ import psycopg2
 class CreateDB:
     def __init__(self, conn):
         self.conn = conn
-
+ 
     def create_table_sessions(self, conn):
         try:
             cursor = conn.cursor()

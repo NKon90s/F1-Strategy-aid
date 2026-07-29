@@ -4,13 +4,6 @@ from typing import Any
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
  
- 
-######################################################################
-#
-#  This file is for storing the API calls needed for the data pipeline
-#  
-######################################################################
-
 class APIrequest:
 
     def __init__(self, year):

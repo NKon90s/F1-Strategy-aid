@@ -48,7 +48,7 @@ services:
     networks:
       - my-network
     command: run
-
+ 
 
 # Postgres, dbt and airflow will communicate through this network
 networks:
