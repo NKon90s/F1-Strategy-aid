@@ -1,5 +1,5 @@
 version: 2
- 
+
 sources:
   - name: dev
     database: db 
