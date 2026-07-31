@@ -1,0 +1,26 @@
+version: 2
+
+models:
+  - name: int_lap_enriched
+    description: Enriched lap statistics
+    config:
+      materialized: table
+
+    columns:
+      - name: meeting_key
+        tests:
+          - not_null
+
+      - name: session_key
+        tests:
+          - not_null
+
+      - name: driver_number
+        tests:
+          - not_null
+      - name: lap_number
+      - name: lap_duration
+      - name: stint_number
+      - name: tyre_age_at_start
+      - name: compound
+      - name: tyre_age
