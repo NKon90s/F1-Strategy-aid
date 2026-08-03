@@ -68,7 +68,7 @@ SELECT
 
     -- how far tyre is from peak
 
-    lap_duration
+    fuel_corrected_duration
 
     -
 
@@ -107,8 +107,15 @@ SELECT
 
     )
 
-    AS rolling_degradation
+    AS rolling_degradation,
 
+    avg_air_temperature,
+    avg_track_temperature,
+    avg_humidity,
+    avg_pressure,
+    rainfall,
+    avg_wind_speed,
+    avg_wind_direction
 
 FROM base
 

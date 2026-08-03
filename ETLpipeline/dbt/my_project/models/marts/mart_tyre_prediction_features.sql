@@ -7,7 +7,7 @@
 
 WITH base AS (
     SELECT *
-    FROM {{ ref('int_lap_enriched') }}
+    FROM {{ ref('int_tyre_degradation') }}
 ),
 
 targets AS (
@@ -30,6 +30,19 @@ targets AS (
 
         ) AS next_5_lap_average
 
+        MIN(fuel_corrected_duration) OVER(
+
+            PARTITION BY
+                session_key,
+                driver_number
+
+            ORDER BY lap_number
+
+            ROWS BETWEEN 1 FOLLOWING
+            AND 5 FOLLOWING
+
+        ) AS best_next_5_lap
+
     FROM base
 )
 
@@ -45,11 +58,18 @@ SELECT
     b.compound,
     b.tyre_age,
     b.stint_number,
+    b.best_lap_in_stint,
 
     -- current pace--
     b.fuel_corrected_duration,
     b.previous_lap_time,
     b.avg_previous_5_laps,
+
+     -- Degradation features--
+    b.lap_to_lap_degradation,
+    b.rolling_avg_lap,
+    b.degradation_from_best,
+    b.rolling_degradation,
 
     -- traffic--
     b.closest_gap_ahead,
@@ -62,7 +82,8 @@ SELECT
     b.rainfall,
 
     -- target--
-    t.next_5_lap_average
+    t.next_5_lap_average,
+    f.best_next_5_lap
 
 FROM base b
 LEFT JOIN targets t
