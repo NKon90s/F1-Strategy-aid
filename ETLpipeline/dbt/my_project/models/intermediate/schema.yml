@@ -18,9 +18,22 @@ models:
       - name: driver_number
         tests:
           - not_null
-      - name: lap_number
-      - name: lap_duration
-      - name: stint_number
-      - name: tyre_age_at_start
-      - name: compound
-      - name: tyre_age
+      
+  
+  - name: int_tyre_degradation
+    description: Tyre statistics
+    config:
+      materialized: table
+
+    columns:
+      - name: meeting_key
+        tests:
+          - not_null
+
+      - name: session_key
+        tests:
+          - not_null
+
+      - name: driver_number
+        tests:
+          - not_null
