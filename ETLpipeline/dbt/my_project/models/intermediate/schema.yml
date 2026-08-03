@@ -2,38 +2,283 @@ version: 2
 
 models:
   - name: int_lap_enriched
-    description: Enriched lap statistics
-    config:
-      materialized: table
+    description: >
+      Feature table combining lap, stint, traffic, and weather data to create
+      engineered features for tyre degradation and lap time analysis. Includes
+      tyre age, clean lap classification, fuel-corrected lap times, and rolling
+      historical performance metrics.
 
     columns:
       - name: meeting_key
+        description: Unique identifier for the race meeting.
         tests:
           - not_null
 
       - name: session_key
+        description: Unique identifier for the session.
         tests:
           - not_null
 
       - name: driver_number
+        description: Driver's race number.
         tests:
           - not_null
-      
-  
+
+      - name: lap_number
+        description: Lap number completed by the driver.
+        tests:
+          - not_null
+
+      - name: lap_duration
+        description: Official lap time in seconds.
+
+      - name: lap_start_time
+        description: Timestamp when the lap started.
+
+      - name: lap_end_time
+        description: Timestamp when the lap ended.
+
+      - name: stint_number
+        description: Sequential stint number for the driver.
+
+      - name: compound
+        description: Tyre compound used during the stint.
+
+      - name: tyre_age_at_start
+        description: Tyre age (laps) at the beginning of the stint.
+
+      - name: lap_start
+        description: First lap of the stint.
+
+      - name: lap_end
+        description: Last lap of the stint.
+
+      - name: tyre_age
+        description: Tyre age on the current lap.
+
+      - name: closest_gap_ahead
+        description: >
+          Minimum interval in seconds to the car ahead during the lap.
+          Used as a proxy for traffic.
+
+      - name: avg_air_temperature
+        description: Average air temperature during the lap.
+
+      - name: avg_track_temperature
+        description: Average track temperature during the lap.
+
+      - name: avg_humidity
+        description: Average humidity during the lap.
+
+      - name: avg_pressure
+        description: Average atmospheric pressure during the lap.
+
+      - name: rainfall
+        description: >
+          Whether rainfall was detected during the lap.
+          Calculated as the maximum rainfall flag observed.
+
+      - name: avg_wind_speed
+        description: Average wind speed during the lap.
+
+      - name: avg_wind_direction
+        description: Average wind direction during the lap.
+
+      - name: is_clean_lap
+        description: >
+          Indicates whether the lap is considered free from traffic.
+          A lap is clean if it is not the first tyre lap and either
+          no interval data exists or the closest gap ahead exceeds
+          1.5 seconds.
+
+      - name: fuel_corrected_duration
+        description: >
+          Lap duration adjusted using a simple fuel burn correction
+          of 0.06 seconds per completed lap.
+
+      - name: previous_lap_time
+        description: >
+          Fuel-corrected lap duration from the driver's previous lap.
+
+      - name: avg_previous_5_laps
+        description: >
+          Rolling average of the previous five fuel-corrected lap
+          durations (excluding the current lap).
+
+
+
   - name: int_tyre_degradation
-    description: Tyre statistics
-    config:
-      materialized: table
+    description: >
+      Int-level table containing tyre degradation metrics derived from
+      lap-level features. Includes rolling performance statistics,
+      degradation indicators, and stint benchmarks for tyre performance
+      analysis and predictive modelling.
 
     columns:
       - name: meeting_key
+        description: Unique identifier for the race meeting.
         tests:
           - not_null
 
       - name: session_key
+        description: Unique identifier for the session.
         tests:
           - not_null
 
       - name: driver_number
+        description: Driver's race number.
         tests:
           - not_null
+
+      - name: stint_number
+        description: Sequential stint number for the driver.
+
+      - name: compound
+        description: Tyre compound used during the stint.
+
+      - name: lap_number
+        description: Lap number within the session.
+        tests:
+          - not_null
+
+      - name: tyre_age
+        description: Age of the tyre in laps at the completion of the current lap.
+
+      - name: lap_duration
+        description: Official lap time in seconds.
+
+      - name: fuel_corrected_duration
+        description: >
+          Lap duration adjusted using a fuel burn correction of
+          0.06 seconds per completed lap.
+
+      - name: closest_gap_ahead
+        description: >
+          Minimum interval in seconds to the car ahead during the lap,
+          used as a proxy for traffic.
+
+      - name: is_clean_lap
+        description: >
+          Indicates whether the lap is considered unaffected by traffic.
+
+      - name: previous_lap_time
+        description: Fuel-corrected lap time from the previous lap.
+
+      - name: avg_previous_5_laps
+        description: >
+          Rolling average of the previous five fuel-corrected lap times,
+          excluding the current lap.
+
+      - name: lap_to_lap_degradation
+        description: >
+          Difference between the current and previous fuel-corrected lap
+          times. Positive values indicate the current lap was slower.
+
+      - name: rolling_avg_lap
+        description: >
+          Rolling average of the current and previous three
+          fuel-corrected lap times within the same stint.
+
+      - name: best_lap_in_stint
+        description: >
+          Fastest fuel-corrected lap achieved by the driver during the
+          current stint.
+
+      - name: degradation_from_best
+        description: >
+          Difference between the current lap duration and the best
+          fuel-corrected lap of the stint. Measures performance loss
+          relative to the stint's peak pace.
+
+      - name: rolling_degradation
+        description: >
+          Rolling average of lap-to-lap degradation over the current
+          and previous three laps within the stint.  
+
+  - name: int_race_context
+    description: >
+      Race event feature table that maps race control messages to each lap.
+      Indicates whether a lap was affected by yellow flags, safety cars,
+      virtual safety cars, or red flags based on race control events that
+      occurred during the lap window.   
+
+    columns:
+      - name: session_key
+        description: Unique identifier for the session.
+        tests:
+          - not_null
+
+      - name: lap_number
+        description: Lap number within the session.
+        tests:
+          - not_null
+
+      - name: yellow_flag
+        description: >
+          Indicator showing whether a yellow flag was active at any point
+          during the lap. A value of 1 indicates a yellow flag occurred,
+          otherwise 0.
+
+      - name: safety_car
+        description: >
+          Indicator showing whether a full Safety Car was deployed during
+          the lap. A value of 1 indicates a Safety Car period, otherwise 0.
+
+      - name: virtual_safety_car
+        description: >
+          Indicator showing whether a Virtual Safety Car (VSC) was active
+          during the lap. A value of 1 indicates a VSC period, otherwise 0.
+
+      - name: red_flag
+        description: >
+          Indicator showing whether a red flag occurred during the lap.
+          A value of 1 indicates the session was red-flagged during the lap,
+          otherwise 0.
+
+
+  - name: int_start_strategy
+    description: >
+      Starting grid feature table combining a driver's grid position with
+      first-stint tyre information. Provides race start characteristics
+      including starting compound, tyre age, first stint length, and
+      indicators for top-10 and podium starts. 
+
+    columns:
+      - name: meeting_key
+        description: Unique identifier for the race meeting.
+        tests:
+          - not_null
+
+      - name: session_key
+        description: Unique identifier for the session.
+        tests:
+          - not_null
+
+      - name: driver_number
+        description: Driver's race number.
+        tests:
+          - not_null
+
+      - name: grid_position
+        description: Driver's starting position on the grid.
+
+      - name: starting_compound
+        description: Tyre compound used to start the race.
+
+      - name: tyre_age_at_start
+        description: Age of the starting tyre set in laps at the beginning of the first stint.
+
+      - name: first_stint_length
+        description: >
+          Number of laps completed in the driver's opening stint,
+          calculated as lap_end - lap_start + 1.
+
+      - name: top10_start
+        description: >
+          Indicates whether the driver started the race inside the top 10
+          grid positions.
+
+      - name: podium_start
+        description: >
+          Indicates whether the driver started the race from one of the
+          front three grid positions.

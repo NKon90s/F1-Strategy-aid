@@ -7,10 +7,10 @@ WITH first_stint AS (
         session_key,
         driver_number,
         compound,
-        tyre_at_age_start,
+        tyre_age_at_start,
         lap_start,
         lap_end,
-        lap_end - lap_start + 1 AS first_sting_length
+        lap_end - lap_start + 1 AS first_stint_length
 
     FROM {{ ref('stg_stints') }}
     WHERE stint_number = 1
