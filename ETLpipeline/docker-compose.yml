@@ -14,7 +14,7 @@ services:
       - ./database/airflow_init.sql:/docker-entrypoint-initdb.d/airflow_init.sql
     networks:
       - my-network
- 
+
   af:
     container_name: airflow_container
     image: apache/airflow:3.3.0
