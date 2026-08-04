@@ -1,4 +1,4 @@
-import sys
+
 from airflow import DAG
 from datetime import datetime, timedelta
 from airflow.providers.docker.operators.docker import DockerOperator
@@ -6,10 +6,10 @@ from docker.types import Mount
 
 default_args = {
     'description': 'A DAG to orchestrate data',
-    'start_date' : datetime(2026, 7, 26),
+    'start_date' : datetime(2026, 8, 5),
     'catchup': False,
 }
- 
+
 dag = DAG(
     dag_id = 'f1-dbt-orchestrator',
     default_args = default_args,
@@ -22,7 +22,7 @@ with dag:
         image = 'ghcr.io/dbt-labs/dbt-postgres:1.9.latest',
         command = 'run',
         working_dir = '/usr/app',
-        Mounts = [
+        mounts = [
             Mount(source = 'D:/Coding projects/F1_strategy_aid/ETLpipeline/dbt/my_project',   #copy the absolute path of your 'my_project' folder
                   target = '/usr/app',
                   type = 'bind'),

@@ -9,7 +9,7 @@ from api_request.main import create_database, data_to_db
 
 default_args = {
     'description': 'A DAG to orchestrate data',
-    'start_date' : datetime(2026, 7, 26),
+    'start_date' : datetime(2026, 8, 4),
     'catchup': False,
 }
 

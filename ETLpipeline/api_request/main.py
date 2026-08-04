@@ -3,7 +3,7 @@ from . import db_connector
 from . import create_db
 from . import insert_records
 
-# meetings -> sessions -> drivers-> the rest
+
 
 def create_database():
     conn = db_connector.connect_to_db()
