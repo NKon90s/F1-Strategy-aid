@@ -4,7 +4,7 @@
  
 WITH lap_stints AS (
     SELECT 
-        l.meeting_key
+        l.meeting_key,
         l.session_key,
         l.driver_number,
         l.lap_number,
@@ -38,7 +38,7 @@ traffic AS (
         l.driver_number,
         l.lap_number,
         -- Use the official OpenF1 column name 'interval' for the gap to the car ahead
-        MIN(i.interval) AS closest_gap_ahead
+        MIN(i.interval_seconds) AS closest_gap_ahead
     FROM lap_stints l
     INNER JOIN {{ ref('stg_intervals') }} i
         ON l.session_key = i.session_key

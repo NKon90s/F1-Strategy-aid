@@ -53,7 +53,7 @@ SELECT
 
     -- traffic--
     l.closest_gap_ahead,
-    l.is_clean_lap
+    l.is_clean_lap,
 
     -- weather--
     l.avg_track_temperature,

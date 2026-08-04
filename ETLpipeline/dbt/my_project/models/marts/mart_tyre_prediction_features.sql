@@ -28,7 +28,7 @@ targets AS (
             ROWS BETWEEN 1 FOLLOWING
             AND 5 FOLLOWING
 
-        ) AS next_5_lap_average
+        ) AS next_5_lap_average,
 
         MIN(fuel_corrected_duration) OVER(
 
@@ -83,7 +83,7 @@ SELECT
 
     -- target--
     t.next_5_lap_average,
-    f.best_next_5_lap
+    t.best_next_5_lap
 
 FROM base b
 LEFT JOIN targets t
