@@ -1,6 +1,12 @@
 import psycopg2
 import os 
 
+###################################################################
+#  The connector is environment-aware.     
+#  It can be run from the code-editor but the airflow DAG 
+#  can run it as well.
+###################################################################
+
 def connect_to_db():
     print("Connecting to PostgreSQL database...")
     try:
