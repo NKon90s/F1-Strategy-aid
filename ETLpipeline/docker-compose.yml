@@ -22,6 +22,7 @@ services:
       - 8000:8080
     environment:
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@db:5432/airflow_db
+      # if airflow tries to access db_connector then it will use the credentials below
       DB_HOST: postgres_container
       DB_PORT: 5432
       DB_NAME: db
