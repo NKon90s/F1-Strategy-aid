@@ -2,22 +2,9 @@ import psycopg2
 from psycopg2.extras import execute_values
 
 class InsertRecords:
-    def __init__(self, conn, session_data, meeting_data, drivers_data, interval_data, car_data, lap_data, pit_data,
-                 pos_data, race_data, grid_data, stint_data, weather_data):
-        
+    def __init__(self, conn):       
         self.conn = conn
-        self.session_data = session_data
-        self.meeting_data = meeting_data
-        self.drivers_data = drivers_data
-        self.interval_data = interval_data
-        self.car_data = car_data
-        self.lap_data = lap_data
-        self.pit_data = pit_data
-        self.pos_data = pos_data
-        self.race_data = race_data
-        self.grid_data = grid_data
-        self.stint_data = stint_data
-        self.weather_data = weather_data
+
         
     def insert_session_data(self, conn, session_data):
         try:

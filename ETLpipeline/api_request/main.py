@@ -1,9 +1,11 @@
-from . import api_request
-from . import db_connector
-from . import create_db
-from . import insert_records
-
-
+#from . 
+import api_request
+#from . 
+import db_connector
+#from . 
+import create_db
+#from . 
+import insert_records
 
 def create_database():
     conn = db_connector.connect_to_db()
@@ -70,8 +72,7 @@ def data_to_db():
         
 
         # Inserting data into the created tables
-        insert_table = insert_records.InsertRecords(conn, session_data, meeting_data, drivers_data, interval_data, car_data, lap_data, pit_data,
-                        pos_data, race_data, grid_data, stint_data, weather_data)
+        insert_table = insert_records.InsertRecords(conn)
             
         insert_table.insert_meeting_data(conn, meeting_data)
         insert_table.insert_session_data(conn, session_data)
@@ -85,7 +86,7 @@ def data_to_db():
         insert_table.insert_starting_grid_data(conn, grid_data)
         insert_table.insert_stint_data(conn, stint_data)
         insert_table.insert_weather_data(conn, weather_data)
-
+    
     except Exception as e:
         print(f"ETL failed: {e}")
         raise
@@ -94,7 +95,7 @@ def data_to_db():
         conn.close()
         print("Database connection closed.")
    
-    
+     
 if __name__ == "__main__":
     create_database()
     data_to_db()
