@@ -42,6 +42,14 @@ class APIrequest:
         return [session['session_key'] for session in race_sessions]
     
 
+
+    def fetch_q_sessions(self, year: int):
+        """Fetches only the qualifying sessions from all of the sessions if they are not cancelled"""
+        session_key = self.fetch_sessions(year)
+        q_sessions = [session for session in session_key if session["session_type"] == "Qualifying" and not session["is_cancelled"]]
+        return [session["session_key"] for session in q_sessions]
+
+
     def create_safe_session(self):
 
         """Creates a requests session with integrated retry logic for 429 errors."""

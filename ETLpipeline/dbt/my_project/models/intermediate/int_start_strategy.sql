@@ -4,6 +4,7 @@
 
 WITH first_stint AS (
     SELECT
+        meeting_key,
         session_key,
         driver_number,
         compound,
@@ -40,5 +41,6 @@ SELECT
 FROM {{ ref('stg_starting_grid') }} sg 
 
 LEFT JOIN first_stint fs 
-ON sg.session_key = fs.session_key
+ON sg.meeting_key = fs.meeting_key
 AND sg.driver_number = fs.driver_number
+

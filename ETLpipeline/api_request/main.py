@@ -33,14 +33,16 @@ def data_to_db():
     # establishing the connection to the DB
     conn = db_connector.connect_to_db()
     try:
-        year = 2024
+        year = 2025
         
         f1_request = api_request.APIrequest(year)
         # Inserting data into the created tables
         insert_table = insert_records.InsertRecords(conn)
 
         race_sessions = f1_request.fetch_race_sessions(year)
-            
+
+        qualifying_sessions = f1_request.fetch_q_sessions(year)
+        quali_workload = [{"session_key" : session_key} for session_key in qualifying_sessions] 
 
         meeting_workload = [{"year": year}]
         session_workload = [{"session_key": session_key} for session_key in race_sessions]
@@ -52,9 +54,17 @@ def data_to_db():
         session_data = f1_request.fetch_f1_data(endpoint='sessions',query_params_list=session_workload)
         insert_table.insert_session_data(conn, session_data)
 
+        q_session_data = f1_request.fetch_f1_data(endpoint='sessions',query_params_list=quali_workload)
+        insert_table.insert_session_data(conn, q_session_data)
+        del q_session_data
+
         drivers_data = f1_request.fetch_f1_data(endpoint='drivers',query_params_list=session_workload)
         insert_table.insert_drivers_data(conn, drivers_data)
-          
+
+        q_drivers_data = f1_request.fetch_f1_data(endpoint='drivers',query_params_list=quali_workload)
+        insert_table.insert_drivers_data(conn, q_drivers_data)
+        del q_drivers_data
+
         workload = [
             {
             "session_key": driver['session_key'], 
@@ -88,7 +98,7 @@ def data_to_db():
         insert_table.insert_race_control_data(conn, race_data) 
         del race_data 
 
-        grid_data = f1_request.fetch_f1_data(endpoint='starting_grid',query_params_list=workload)
+        grid_data = f1_request.fetch_f1_data(endpoint='starting_grid',query_params_list=quali_workload)
         insert_table.insert_starting_grid_data(conn, grid_data) 
         del grid_data 
 
@@ -103,7 +113,7 @@ def data_to_db():
         del meeting_data
         del session_data
         del drivers_data
-    
+     
     except Exception as e:
         print(f"ETL failed: {e}")
         raise

@@ -12,7 +12,7 @@ default_args = {
     'start_date' : datetime(2026, 8, 4),
     'catchup': False,
 }
-
+ 
 dag = DAG(
     dag_id = 'f1-api-orchestrator',
     default_args = default_args,
@@ -20,11 +20,12 @@ dag = DAG(
 )
 
 with dag:
+    """
     task1 = PythonOperator(
         task_id = 'create_db_task',
         python_callable = create_database
     )
-
+    """
     task2 = PythonOperator(
             task_id = 'insert_data_task',
             python_callable = data_to_db
