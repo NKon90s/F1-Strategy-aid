@@ -2,7 +2,7 @@ from . import api_request
 from . import db_connector
 from . import create_db
 from . import insert_records
-
+ 
 def create_database():
     conn = db_connector.connect_to_db()
     try:

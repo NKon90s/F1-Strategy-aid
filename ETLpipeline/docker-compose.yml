@@ -31,6 +31,7 @@ services:
     volumes:
       - ./airflow/dags:/opt/airflow/dags
       - ./api_request:/opt/airflow/api_request
+      - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - db
     networks:
