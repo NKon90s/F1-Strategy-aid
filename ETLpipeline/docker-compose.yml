@@ -27,6 +27,7 @@ services:
       DB_PORT: 5432
       DB_NAME: db
       DB_USER: db_user
+      # in real production avoid hardcoding passwords
       DB_PASSWORD: db_password
     volumes:
       - ./airflow/dags:/opt/airflow/dags
