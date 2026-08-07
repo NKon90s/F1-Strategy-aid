@@ -1,0 +1,27 @@
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyc
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Packaging
+*.egg-info/
+dist/
+build/
+
+# Jupyter
+notebooks/
+ .ipynb_checkpoints/
+*.ipynb
+
+# Specific files
+*.csv
+*.joblib
+*.obs
+
+# database folder
+database/data/
