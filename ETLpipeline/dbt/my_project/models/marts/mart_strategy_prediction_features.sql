@@ -47,6 +47,7 @@ SELECT
     l.stint_number,
 
     -- pace--
+    l.lap_duration,
     l.avg_previous_5_laps,
     l.fuel_corrected_duration,
 
@@ -65,6 +66,7 @@ SELECT
     r.safety_car,
     r.virtual_safety_car,
     r.yellow_flag,
+    r.red_flag,
 
     -- remaining laps
     MAX(l.lap_number)
@@ -73,10 +75,6 @@ SELECT
     )
     - l.lap_number
     AS laps_remaining,
-
-    -- starting conditions
-    s.grid_position,
-    s.starting_compound,
 
     p.avg_lane_duration,
     p.fastest_lane_duration,

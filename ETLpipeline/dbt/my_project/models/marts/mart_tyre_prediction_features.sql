@@ -61,6 +61,7 @@ SELECT
     b.best_lap_in_stint,
 
     -- current pace--
+    b.lap_duration,
     b.fuel_corrected_duration,
     b.previous_lap_time,
     b.avg_previous_5_laps,
