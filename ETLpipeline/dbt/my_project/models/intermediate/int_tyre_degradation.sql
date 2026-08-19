@@ -31,8 +31,10 @@ SELECT
     is_clean_lap,
 
     previous_lap_time,
+    previous_stint_lap_time,
 
     avg_previous_5_laps,
+    avg_previous_5_stint_laps,
 
     fuel_corrected_duration - previous_lap_time AS lap_to_lap_degradation,
 
@@ -46,7 +48,7 @@ SELECT
 
         ORDER BY lap_number
 
-        ROWS BETWEEN 3 PRECEDING 
+        ROWS BETWEEN 4 PRECEDING 
         AND CURRENT ROW
 
     )
@@ -63,6 +65,8 @@ SELECT
             session_key,
             driver_number,
             stint_number
+        ORDER BY lap_number
+        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
 
     ) AS best_lap_in_stint,
 
@@ -79,6 +83,8 @@ SELECT
             session_key,
             driver_number,
             stint_number
+        ORDER BY lap_number
+        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
 
     ) AS degradation_from_best,
 

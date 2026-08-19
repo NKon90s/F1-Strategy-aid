@@ -30,9 +30,9 @@ race_events AS (
 
         MAX(CASE WHEN rc.flag = 'YELLOW' THEN 1 ELSE 0 END) AS yellow_flag,
 
-        MAX(CASE WHEN rc.flag = 'SAFETY CAR' THEN 1 ELSE 0 END) AS safety_car,
+        MAX(CASE WHEN rc.category = 'SafetyCar' THEN 1 ELSE 0 END) AS safety_car,
 
-        MAX(CASE WHEN rc.flag = 'VSC' THEN 1 ELSE 0 END) AS virtual_safety_car,
+        MAX(CASE WHEN rc.category = 'VSC' THEN 1 ELSE 0 END) AS virtual_safety_car,
 
         MAX(CASE WHEN rc.flag = 'RED' THEN 1 ELSE 0 END) AS red_flag
 

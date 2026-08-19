@@ -49,6 +49,8 @@ SELECT
     -- pace--
     l.lap_duration,
     l.avg_previous_5_laps,
+    --avg lap times in the same stint--
+    avg_previous_5_stint_laps, 
     l.fuel_corrected_duration,
 
 
@@ -64,7 +66,6 @@ SELECT
 
     -- race situation--
     r.safety_car,
-    r.virtual_safety_car,
     r.yellow_flag,
     r.red_flag,
 

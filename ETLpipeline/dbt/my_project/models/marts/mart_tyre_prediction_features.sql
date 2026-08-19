@@ -64,7 +64,9 @@ SELECT
     b.lap_duration,
     b.fuel_corrected_duration,
     b.previous_lap_time,
+    b.previous_stint_lap_time,
     b.avg_previous_5_laps,
+    b.avg_previous_5_stint_laps,
 
      -- Degradation features--
     b.lap_to_lap_degradation,

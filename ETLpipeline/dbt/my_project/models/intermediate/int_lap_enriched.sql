@@ -134,6 +134,17 @@ SELECT
 
     ) AS previous_lap_time,
 
+    LAG(fuel_corrected_duration) OVER(
+
+        PARTITION BY 
+            session_key,
+            driver_number,
+            stint_number
+
+        ORDER BY lap_number
+
+    ) AS previous_stint_lap_time,
+
 
     AVG(fuel_corrected_duration) OVER(
 
@@ -146,7 +157,21 @@ SELECT
         ROWS BETWEEN 5 PRECEDING 
         AND 1 PRECEDING
 
-    ) AS avg_previous_5_laps
+    ) AS avg_previous_5_laps,
+
+    AVG(fuel_corrected_duration) OVER(
+
+        PARTITION BY 
+            session_key,
+            driver_number,
+            stint_number
+
+        ORDER BY lap_number
+
+        ROWS BETWEEN 5 PRECEDING 
+        AND 1 PRECEDING
+
+    ) AS avg_previous_5_stint_laps
 
 
 FROM features
