@@ -9,6 +9,7 @@ WITH lap_stints AS (
         l.driver_number,
         l.lap_number,
         l.lap_duration,
+        l.is_pit_out_lap,
 
         l.date_start AS lap_start_time,
         l.date_start + (l.lap_duration * INTERVAL '1 second') AS lap_end_time,
