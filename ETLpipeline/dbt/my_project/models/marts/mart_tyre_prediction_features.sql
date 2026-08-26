@@ -75,7 +75,7 @@ SELECT
     b.rolling_degradation,
 
     -- traffic--
-    b.gap_to_leader,
+    b.gap_to_leader_seconds,
     b.closest_gap_ahead,
     b.is_clean_lap,
 

@@ -26,7 +26,7 @@ SELECT
 
     fuel_corrected_duration,
 
-    gap_to_leader,
+    gap_to_leader_seconds,
 
     closest_gap_ahead,
 

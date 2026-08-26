@@ -38,7 +38,9 @@ traffic AS (
         l.session_key,
         l.driver_number,
         l.lap_number,
-        i.gap_to_leader,
+
+        AVG(i.gap_to_leader_seconds) AS gap_to_leader_seconds,
+
         -- Use the official OpenF1 column name 'interval' for the gap to the car ahead
         MIN(i.interval_seconds) AS closest_gap_ahead
     FROM lap_stints l
@@ -51,6 +53,27 @@ traffic AS (
         l.session_key,
         l.driver_number,
         l.lap_number
+),
+
+position AS (
+    SELECT
+        l.session_key,
+        l.driver_number,
+        l.lap_number,
+        p.position AS position_at_lap_end
+
+    FROM lap_stints l
+
+    LEFT JOIN LATERAL (
+        SELECT
+            p.position
+        FROM {{ ref('stg_position') }} p
+        WHERE p.session_key = l.session_key
+          AND p.driver_number = l.driver_number
+          AND p.date <= l.lap_end_time
+        ORDER BY p.date DESC
+        LIMIT 1
+    ) p ON TRUE
 ),
 
 
@@ -86,8 +109,10 @@ weather AS (
 features AS (
     SELECT
         l.*,
+
+        t.gap_to_leader_seconds,
         t.closest_gap_ahead,
-        t.gap_to_leader,
+        p.position_at_lap_end,
         w.avg_air_temperature,
         w.avg_track_temperature,
         w.avg_humidity,
@@ -114,6 +139,11 @@ features AS (
         ON l.session_key = t.session_key
         AND l.driver_number = t.driver_number
         AND l.lap_number = t.lap_number
+
+    LEFT JOIN position p
+        ON l.session_key = p.session_key
+        AND l.driver_number = p.driver_number
+        AND l.lap_number = p.lap_number
 
     LEFT JOIN weather w
 
