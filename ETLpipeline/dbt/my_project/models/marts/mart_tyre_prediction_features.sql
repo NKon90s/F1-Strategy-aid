@@ -10,6 +10,11 @@ WITH base AS (
     FROM {{ ref('int_tyre_degradation') }}
 ),
 
+laps AS (
+    SELECT *
+    FROM {{ ref('int_lap_enriched') }}
+),
+
 targets AS (
 
     SELECT
@@ -80,6 +85,14 @@ SELECT
     b.closest_gap_ahead,
     b.is_clean_lap,
 
+    -- remaining laps
+    MAX(l.lap_number)
+    OVER(
+        PARTITION BY l.session_key
+    )
+    - l.lap_number
+    AS laps_remaining,
+
     -- weather--
     b.avg_air_temperature,
     b.avg_track_temperature,
@@ -95,3 +108,8 @@ LEFT JOIN targets t
     ON b.session_key=t.session_key
     AND b.driver_number=t.driver_number
     AND b.lap_number=t.lap_number
+
+LEFT JOIN laps l
+    ON b.session_key=l.session_key
+    AND b.driver_number=l.driver_number
+    AND b.lap_number=l.lap_number
