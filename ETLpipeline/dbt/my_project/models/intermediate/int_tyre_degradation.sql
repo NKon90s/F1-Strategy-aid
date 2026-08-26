@@ -26,6 +26,8 @@ SELECT
 
     fuel_corrected_duration,
 
+    gap_to_leader,
+
     closest_gap_ahead,
 
     is_clean_lap,

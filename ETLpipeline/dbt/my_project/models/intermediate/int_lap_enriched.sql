@@ -38,6 +38,7 @@ traffic AS (
         l.session_key,
         l.driver_number,
         l.lap_number,
+        i.gap_to_leader,
         -- Use the official OpenF1 column name 'interval' for the gap to the car ahead
         MIN(i.interval_seconds) AS closest_gap_ahead
     FROM lap_stints l
@@ -86,6 +87,7 @@ features AS (
     SELECT
         l.*,
         t.closest_gap_ahead,
+        t.gap_to_leader,
         w.avg_air_temperature,
         w.avg_track_temperature,
         w.avg_humidity,

@@ -24,13 +24,14 @@ race_start AS (
 pit_stats AS (
     SELECT
         session_key,
+        driver_number,
         AVG(lane_duration) AS avg_lane_duration,
         MIN(lane_duration) AS fastest_lane_duration,
         STDDEV(lane_duration) AS lane_duration_std
 
     FROM {{ ref('stg_pit') }}
 
-    GROUP BY session_key
+    GROUP BY session_key, driver_number
 )
 
 
@@ -94,3 +95,4 @@ LEFT JOIN race_start s
 
 LEFT JOIN pit_stats p
     ON l.session_key = p.session_key
+    AND l.driver_number = p.driver_number
