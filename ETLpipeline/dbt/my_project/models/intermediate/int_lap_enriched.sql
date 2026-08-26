@@ -31,7 +31,7 @@ WITH lap_stints AS (
         AND l.lap_number BETWEEN s.lap_start AND s.lap_end
     WHERE l.lap_duration IS NOT NULL
 ),
-
+ 
 
 traffic AS (
     SELECT 
@@ -42,7 +42,16 @@ traffic AS (
         AVG(i.gap_to_leader_seconds) AS gap_to_leader_seconds,
 
         -- Use the official OpenF1 column name 'interval' for the gap to the car ahead
-        MIN(i.interval_seconds) AS closest_gap_ahead
+        MIN(i.interval_seconds) AS closest_gap_ahead,
+
+        -- Whether the driver was lapped during this lap
+        MAX(
+            CASE 
+                WHEN i.raw_interval LIKE '%LAP%' THEN 1
+                ELSE 0
+            END
+        ) AS is_lapped
+
     FROM lap_stints l
     INNER JOIN {{ ref('stg_intervals') }} i
         ON l.session_key = i.session_key
@@ -112,6 +121,7 @@ features AS (
 
         t.gap_to_leader_seconds,
         t.closest_gap_ahead,
+        t.is_lapped,
         p.position_at_lap_end,
         w.avg_air_temperature,
         w.avg_track_temperature,

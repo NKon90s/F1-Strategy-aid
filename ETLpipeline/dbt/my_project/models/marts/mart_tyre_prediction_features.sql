@@ -83,6 +83,7 @@ SELECT
     b.position_at_lap_end,
     b.gap_to_leader_seconds,
     b.closest_gap_ahead,
+    b.is_lapped,
     b.is_clean_lap,
 
     -- remaining laps

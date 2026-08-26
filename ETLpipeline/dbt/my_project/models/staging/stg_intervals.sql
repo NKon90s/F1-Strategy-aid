@@ -27,5 +27,4 @@ SELECT
     END AS gap_to_leader_seconds
 
 
-
 FROM {{source('dev', 'interval_data')}}
