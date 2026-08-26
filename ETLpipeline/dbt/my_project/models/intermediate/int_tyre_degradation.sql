@@ -30,6 +30,8 @@ SELECT
 
     closest_gap_ahead,
 
+    position_at_lap_end,
+
     is_clean_lap,
 
     previous_lap_time,
