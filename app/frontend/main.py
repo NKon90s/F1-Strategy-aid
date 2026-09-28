@@ -1,8 +1,6 @@
 import streamlit as st
 import pandas as pd
 import requests 
-
-
  
 st.set_page_config(
     page_title="F1 Strategy Aid",
