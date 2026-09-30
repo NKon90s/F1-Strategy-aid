@@ -76,6 +76,7 @@ class StintInput(BaseModel):
     n_of_corners: Annotated[int | None, Field(default=None, gt = 0, description="How many corners the given track has")]
     degradation: Annotated[Literal['Very-Low','Low','Medium-Low', 'Medium', 'Medium-High', 'High', 'Very-High'], Field(description="The level of degradation of the given track")]
     overtake_difficulty: Annotated[Literal['Easy', 'Moderate', 'Hard'], Field(description="How difficult it is to perform an overtake")]
+    tipical_n_of_pitstops: Annotated[int | None, Field(default=1, gt = 0, description="The usual number of pit stops on a given grand prix")]
     avg_pit_time: Annotated[float | None, Field(default=None, gt = 0, description="What is the average pit loss in seconds")]
     driver_number: Annotated[int | None, Field(description="The number of the driver")]
     full_name: Annotated[str | None, Field(description="The full name of the driver")]
@@ -109,6 +110,7 @@ class StintInput(BaseModel):
                 "n_of_corners": 15,
                 "degradation": "Very High",
                 "overtake_difficulty": "Hard",
+                "tipical_n_of_pitstops": 2,
                 "avg_pit_time": 25.84,
                 "driver_number": 1,
                 "full_name": "Max VERSTAPPEN",
@@ -141,9 +143,9 @@ class PredictionResponseStint(BaseModel):
 
 
 @app.post("/predict-compound", response_model=PredictionResponseCompound)
-async def pred_compound_endpoint(df: pd.DataFrame):
+async def pred_compound_endpoint(data: dict):
 
-    prediction = predict_compound(df)
+    prediction = predict_compound(data)
     
     predicted_tyre  = prediction["prediction"]
     prob_hard = prediction["probabilities"]["HARD"]
@@ -159,8 +161,8 @@ async def pred_compound_endpoint(df: pd.DataFrame):
 
 
 @app.post("/predict-stint", response_model=PredictionResponseStint)
-async def pred_stint_endpoint(df: pd.DataFrame):
-    prediction = predict_stint(df)
+async def pred_stint_endpoint(data: dict):
+    prediction = predict_stint(data)
     return PredictionResponseStint(
         first_stint_length = prediction
     )
@@ -190,4 +192,4 @@ def ping():
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=9999)

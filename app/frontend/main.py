@@ -1,7 +1,12 @@
 import streamlit as st
 import pandas as pd
+from featuremap import FeatureConfig
 import requests 
- 
+
+# URLs of the API endpoints
+COMPOUND_URL = "http://api:8000/predict-compound"
+STINT_URL = "http://api:8000/predict-stint"
+
 st.set_page_config(
     page_title="F1 Strategy Aid",
     page_icon="🏎️",
@@ -366,25 +371,31 @@ weather_options = [
 ]
 
 
+
+safety_car_options = [
+    "Low",
+    "Medium",
+    "High"
+]
+
+
+
 # ============================================================
 # HEADER
 # ============================================================
 
-st.markdown("""
+f1_header_html=f"""
 <div class="f1-header">
-
     <div class="f1-title">
         F1 <span>STRATEGY AID</span>
     </div>
-
     <div class="f1-subtitle">
         Race strategy decision support system
         • Tyres • Weather • Track Conditions • Race Position
     </div>
-
 </div>
-""", unsafe_allow_html=True)
-
+"""
+st.markdown(f1_header_html, unsafe_allow_html=True)
 
 # ============================================================
 # INPUT SECTION
@@ -416,6 +427,10 @@ with col1:
         list(range(1, 21))
     )
 
+    tyre_age_at_start = st.selectbox(
+        "Tyre Degradation",
+        list(range(0,6))
+    )
 
 with col2:
 
@@ -427,6 +442,11 @@ with col2:
     weather = st.selectbox(
         "Rain Expectation",
         weather_options
+    )
+
+    safety_car_probability = st.selectbox(
+        "Safety Car Probability",
+        safety_car_options
     )
 
  
@@ -448,7 +468,23 @@ with col3:
         step=1
     )
 
+#======================================================
+# CALLING THE PREDICTION MODELS
+#======================================================
 
+
+add_features = FeatureConfig(driver, grid_position, asphalt_temperature, selected_gp)
+pred_compound_features = add_features.fetch_compound_params()
+
+predict_compound = requests(COMPOUND_URL, pred_compound_features)
+
+starting_compound = predict_compound['starting_compound']
+
+pred_stint_features = add_features.fetch_stint_params(starting_compound, tyre_age_at_start)
+
+predict_stint = requests(STINT_URL, pred_stint_features)
+
+  
 
 # ============================================================
 # STRATEGY CALCULATION
@@ -458,7 +494,6 @@ with col3:
 def calculate_strategy(
     weather,
     asphalt_temperature,
-    air_temperature,
     grid_position,
     tyre_degradation,
     safety_car_probability
@@ -539,23 +574,21 @@ st.markdown("")
 if st.button("🏎️  GENERATE STRATEGY"):
 
     strategy, explanation = calculate_strategy(
-        weather,
-        asphalt_temperature,
-        air_temperature,
-        grid_position
+        weather=weather,
+        asphalt_temperature=asphalt_temperature,
+        air_temperature=air_temperature,
+        grid_position=grid_position,
+        safety_car_probability=safety_car_probability
     )
 
-    st.markdown(f"""
+    strategy_html=f"""
     <div class="strategy-result">
-
         <div class="strategy-label">
             Recommended Strategy
         </div>
-
         <div class="strategy-main">
             {strategy}
         </div>
-
         <div style="
             color:#c0c0c0;
             line-height:1.6;
@@ -563,9 +596,9 @@ if st.button("🏎️  GENERATE STRATEGY"):
         ">
             {explanation}
         </div>
-
     </div>
-    """, unsafe_allow_html=True)
+    """
+    st.markdown(strategy_html, unsafe_allow_html=True)
 
     # --------------------------------------------------------
     # SUMMARY METRICS
