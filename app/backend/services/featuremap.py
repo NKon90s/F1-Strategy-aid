@@ -1,10 +1,11 @@
 import pandas as pd
 from pathlib import Path
+import numpy as np
 
-BASE_DIR = Path(__file__).resolve().parents[2]
-MODEL_DIR = BASE_DIR / "csv"  # locate the csv folder
+BASE_DIR = Path(__file__).resolve().parents[1]
+MODEL_DIR = BASE_DIR / "data"  # locate the csv folder
 
-pre_race_model = pd.read_csv(MODEL_DIR / "pre_race.csv")
+pre_race_model = pd.read_csv(MODEL_DIR / "prerace.csv")
 
 class FeatureConfig:
 
@@ -14,6 +15,19 @@ class FeatureConfig:
         self.asphalt_temperature = asphalt_temperature
         self.selected_gp = selected_gp
 
+    def make_json_safe(self, data):
+        safe_data = {}
+
+        for key, value in data.items():
+            if isinstance(value, np.generic):
+                value = value.item()
+
+            if isinstance(value, float) and not np.isfinite(value):
+                value = None
+
+            safe_data[key] = value
+
+        return safe_data
 
     def fetch_compound_params(self):
 
@@ -23,7 +37,7 @@ class FeatureConfig:
             raise ValueError(
                 f"No data found for Grand Prix: {self.selected_gp}"
             )
-
+ 
         driver_data = gp_data[gp_data['full_name'] == self.driver]
 
         if driver_data.empty:
@@ -39,7 +53,7 @@ class FeatureConfig:
             )
 
 
-        return {
+        return self.make_json_safe({
             "location" : gp_data['location'].iloc[0],
             "avg_track_temperature" : self.asphalt_temperature,
             "track_length": gp_data['track_length'].iloc[0],
@@ -56,7 +70,7 @@ class FeatureConfig:
             "dist_soft": gp_data['dist_soft'].iloc[0],
             "driver_baseline_pace": driver_data['driver_baseline_pace'].iloc[0],
             "grid_position": self.grid_position
-        }
+        })
 
 
     def fetch_stint_params(self, starting_compound, tyre_age_at_start = 0):
@@ -82,7 +96,7 @@ class FeatureConfig:
                 f"No grid position {self.grid_position} found for {self.selected_gp}"
             )
 
-        return {
+        return self.make_json_safe({
             "location" : gp_data['location'].iloc[0],
             "avg_track_temperature" : self.asphalt_temperature,
             "track_length": gp_data['track_length'].iloc[0],
@@ -105,5 +119,21 @@ class FeatureConfig:
             "avg_hard_stint_by_driver": driver_data['avg_hard_stint_by_driver'].iloc[0],
             "avg_med_stint_by_driver": driver_data['avg_med_stint_by_driver'].iloc[0],
             "avg_soft_stint_by_driver": driver_data['avg_soft_stint_by_driver'].iloc[0]
-        }
+        })
     
+
+if __name__ == "__main__":
+
+
+    driver = "Max VERSTAPPEN"
+    grid_position = 1
+    asphalt_temperature = 35
+    selected_gp ="Saudi Arabian Grand Prix"
+    starting_compound = 'SOFT'
+    
+    instance = FeatureConfig(driver, grid_position, asphalt_temperature, selected_gp)
+
+    response = instance.fetch_compound_params()
+    response2 = instance.fetch_stint_params(starting_compound)
+    print(response)
+    print(response2)

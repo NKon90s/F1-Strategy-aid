@@ -1,10 +1,11 @@
 import joblib
 import pandas as pd
 from pathlib import Path
+import numpy as np
 
 
-# Identifying the root library parent[2] provides the F1_strategy_aid lib
-BASE_DIR = Path(__file__).resolve().parents[2]
+# Identifying the root library parent[1] provides the backend lib
+BASE_DIR = Path(__file__).resolve().parents[1]
 MODEL_DIR = BASE_DIR / "models"  # locate the models folder
 
 compound_model_path = MODEL_DIR / "final_xgb_tyre_prediction_model.joblib"
@@ -39,7 +40,7 @@ def predict_compound(data: dict):
             "SOFT": float(probabilities[2])
         }
     }
-    
+
 
 def predict_stint(data: dict):
     X = pd.DataFrame([data])
@@ -49,27 +50,3 @@ def predict_stint(data: dict):
 
 
 
-
-if __name__ == "__main__":
-
-    data = {
-        "location": "Sakhir",
-        "avg_track_temperature": 28.81,
-        "track_length": 5412,
-        "n_of_corners": 15,
-        "degradation": "Very High",
-        "overtake_difficulty": "Hard",
-        "avg_pit_time": 25.84,
-        "driver_number": 1,
-        "full_name": "Max VERSTAPPEN",
-        "team_name": "Red Bull Racing",
-        "grid_category": "Top-Field",
-        "dist_hard": 0.06,
-        "dist_medium": 0.11,
-        "dist_soft": 0.83,
-        "driver_baseline_pace": 98.93,
-        "grid_position": 1
-    }
-
-    prediction = predict_compound(data)
-    print(prediction)

@@ -2,8 +2,10 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, model_validator, ValidationError, Field
 from typing import Annotated, Literal
 import uvicorn
-from predict import predict_compound, predict_stint
+from services.predict import predict_compound, predict_stint
 import pandas as pd
+from services.featuremap import FeatureConfig
+from services.simulate_race import SimulateRace
 
 ####################################################
 #
@@ -23,18 +25,18 @@ app = FastAPI(
 class CompoundInput(BaseModel):
     location: Annotated[str | None, Field(description="The location (city) of the grand prix")]
     avg_track_temperature: Annotated[float | None, Field(description="Average Temperature of the track when race starts")]
-    track_length: Annotated[int | None, Field(default=None, gt = 0, description="The lengths of the track in meters")]
-    n_of_corners: Annotated[int | None, Field(default=None, gt = 0,description="How many corners the given track has")]
-    degradation: Annotated[Literal['Very-Low','Low','Medium-Low', 'Medium', 'Medium-High', 'High', 'Very-High'], Field(description="The level of degradation of the given track")]
+    track_length: Annotated[int | None, Field(gt = 0, description="The lengths of the track in meters")]
+    n_of_corners: Annotated[int | None, Field(gt = 0,description="How many corners the given track has")]
+    degradation: Annotated[Literal['Very-Low','Low','Medium-Low', 'Low-Medium','Medium', 'Medium-High', 'High', 'Very-High'], Field(description="The level of degradation of the given track")]
     overtake_difficulty: Annotated[Literal['Easy', 'Moderate', 'Hard'], Field(description="How difficult it is to perform an overtake")]
-    avg_pit_time: Annotated[float | None, Field(default=None, gt = 0, description="What is the average pit loss in seconds")]
+    avg_pit_time: Annotated[float | None, Field(gt = 0, description="What is the average pit loss in seconds")]
     driver_number: Annotated[int | None, Field(description="The number of the driver")]
     full_name: Annotated[str | None, Field(description="The full name of the driver")]
     team_name: Annotated[str | None, Field(description="The driver's team")] 
     grid_category: Annotated[Literal['Top-Field', 'Mid-Field', 'Back-Field'], Field(description="Which is the grid category: Top-field, Mid-field, Back-field")]
-    dist_hard: Annotated[float | None, Field(default=None, ge=0, le=1, description="The distribution of the grid-category using hard compound")]
-    dist_medium: Annotated[float | None, Field(default=None, ge=0, le=1, description="The distribution of the grid-category using medium compound")]
-    dist_soft: Annotated[float | None, Field(default=None, ge=0, le=1, description="The distribution of the grid-category using soft compound")]
+    dist_hard: Annotated[float | None, Field(ge=0, le=1, description="The distribution of the grid-category using hard compound")]
+    dist_medium: Annotated[float | None, Field(ge=0, le=1, description="The distribution of the grid-category using medium compound")]
+    dist_soft: Annotated[float | None, Field(ge=0, le=1, description="The distribution of the grid-category using soft compound")]
     driver_baseline_pace: Annotated[float | None, Field(description="The average baseline pace of the given driver by circuit")]
     grid_position: Annotated[int | None, Field(description="The starting grid position of the given driver")]
 
@@ -42,7 +44,7 @@ class CompoundInput(BaseModel):
     def validate_grid(self):
         if self.grid_position is not None:
             if not 1 <= self.grid_position <= 20:
-                raise ValidationError("Grid position must be between 1 and 20")
+                raise ValueError("Grid position must be between 1 and 20")
         
         return self
 
@@ -53,7 +55,7 @@ class CompoundInput(BaseModel):
                 "avg_track_temperature": 28.81,
                 "track_length": 5412,
                 "n_of_corners": 15,
-                "degradation": "Very High",
+                "degradation": "Very-High",
                 "overtake_difficulty": "Hard",
                 "avg_pit_time": 25.84,
                 "driver_number": 1,
@@ -72,12 +74,12 @@ class CompoundInput(BaseModel):
 class StintInput(BaseModel):
     location: Annotated[str | None, Field(description="The location (city) of the grand prix")]
     avg_track_temperature: Annotated[float | None, Field(description="Average Temperature of the track when race starts")]
-    track_length: Annotated[int | None, Field(default=None, gt = 0, description="The lengths of the track in meters")]
-    n_of_corners: Annotated[int | None, Field(default=None, gt = 0, description="How many corners the given track has")]
-    degradation: Annotated[Literal['Very-Low','Low','Medium-Low', 'Medium', 'Medium-High', 'High', 'Very-High'], Field(description="The level of degradation of the given track")]
+    track_length: Annotated[int | None, Field(gt = 0, description="The lengths of the track in meters")]
+    n_of_corners: Annotated[int | None, Field(gt = 0, description="How many corners the given track has")]
+    degradation: Annotated[Literal['Very-Low','Low','Medium-Low', 'Low-Medium', 'Medium', 'Medium-High', 'High', 'Very-High'], Field(description="The level of degradation of the given track")]
     overtake_difficulty: Annotated[Literal['Easy', 'Moderate', 'Hard'], Field(description="How difficult it is to perform an overtake")]
     tipical_n_of_pitstops: Annotated[int | None, Field(default=1, gt = 0, description="The usual number of pit stops on a given grand prix")]
-    avg_pit_time: Annotated[float | None, Field(default=None, gt = 0, description="What is the average pit loss in seconds")]
+    avg_pit_time: Annotated[float | None, Field(gt = 0, description="What is the average pit loss in seconds")]
     driver_number: Annotated[int | None, Field(description="The number of the driver")]
     full_name: Annotated[str | None, Field(description="The full name of the driver")]
     team_name: Annotated[str | None, Field(description="The driver's team")] 
@@ -97,7 +99,7 @@ class StintInput(BaseModel):
     def validate_grid(self):
         if self.grid_position is not None:
             if not 1 <= self.grid_position <= 20:
-                raise ValidationError("Grid position must be between 1 and 20")
+                raise ValueError("Grid position must be between 1 and 20")
     
         return self
  
@@ -108,7 +110,7 @@ class StintInput(BaseModel):
                 "avg_track_temperature": 28.81,
                 "track_length": 5412,
                 "n_of_corners": 15,
-                "degradation": "Very High",
+                "degradation": "Very-High",
                 "overtake_difficulty": "Hard",
                 "tipical_n_of_pitstops": 2,
                 "avg_pit_time": 25.84,
@@ -129,7 +131,6 @@ class StintInput(BaseModel):
             }
         }
 
- 
 
 # Defining Response Models with pydantic
 class PredictionResponseCompound(BaseModel):
@@ -141,11 +142,62 @@ class PredictionResponseCompound(BaseModel):
 class PredictionResponseStint(BaseModel):
     first_stint_length: float = Field(..., gt=0, le=70)
 
+class CompoundFetchRequest(BaseModel):
+    driver: str
+    grid_position: int = Field(..., ge=1, le=20)
+    asphalt_temperature: float
+    selected_gp: str
+
+
+class StintFetchRequest(BaseModel):
+    driver: str
+    grid_position: int = Field(..., ge=1, le=20)
+    asphalt_temperature: float
+    selected_gp: str
+    starting_compound: Literal["SOFT", "MEDIUM", "HARD"]
+    tyre_age_at_start: int = Field(default=0, ge = 0, le=5)
+
+
+class SimulateRaceRequest(BaseModel):
+    selected_gp: str
+    driver: str
+    starting_compound: Literal["SOFT", "MEDIUM", "HARD"]
+    first_stint: float = Field(..., ge=1)
+
+ 
+
+@app.post("/fetch-compound-data")
+def fetch_compound(data: CompoundFetchRequest):
+    add_features = FeatureConfig(
+        data.driver,
+        data.grid_position,
+        data.asphalt_temperature,
+        data.selected_gp
+    )
+
+    pred_compound_features = add_features.fetch_compound_params()
+
+    return pred_compound_features
+
+
+@app.post("/fetch-stint-data")
+def fetch_stint(data: StintFetchRequest):
+    add_features = FeatureConfig(
+        data.driver,
+        data.grid_position,
+        data.asphalt_temperature,
+        data.selected_gp
+    )
+    pred_stint_features = add_features.fetch_stint_params(data.starting_compound)
+
+    return pred_stint_features
+
+
 
 @app.post("/predict-compound", response_model=PredictionResponseCompound)
-async def pred_compound_endpoint(data: dict):
-
-    prediction = predict_compound(data)
+async def pred_compound_endpoint(data: CompoundInput):
+    # model_dump() functiion converts the input into dictionary format
+    prediction = predict_compound(data.model_dump())
     
     predicted_tyre  = prediction["prediction"]
     prob_hard = prediction["probabilities"]["HARD"]
@@ -161,11 +213,26 @@ async def pred_compound_endpoint(data: dict):
 
 
 @app.post("/predict-stint", response_model=PredictionResponseStint)
-async def pred_stint_endpoint(data: dict):
-    prediction = predict_stint(data)
+async def pred_stint_endpoint(data: StintInput):
+    # model_dumo() functiion converts the input into dictionary format
+    prediction = predict_stint(data.model_dump())
     return PredictionResponseStint(
         first_stint_length = prediction
     )
+
+  
+@app.post("/simulate-race")
+async def simulate_race(data: SimulateRaceRequest):
+    race_instance = SimulateRace(
+        data.selected_gp,
+        data.driver,
+        data.starting_compound,
+        data.first_stint
+    )
+    race_data = race_instance.fetch_race_data()
+    strategy = race_instance.calculate_strategy(race_data)
+
+    return strategy
 
 
 @app.get("/")
