@@ -6,6 +6,15 @@ from services.predict import predict_compound, predict_stint
 import pandas as pd
 from services.featuremap import FeatureConfig
 from services.simulate_race import SimulateRace
+import logging 
+import time
+
+# for rate limiting
+from fastapi import Request
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
+
 
 ####################################################
 #
@@ -14,12 +23,51 @@ from services.simulate_race import SimulateRace
 #
 ####################################################
 
+
+# Introducing basic logging of requests
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
 # Creating a FastAPI app
 app = FastAPI(
     title="F1 Strategy Aid",
     description="Predicts ideal starting compound and first stint length",
     version="1.0.0"
 )
+
+# Setting up rate limiter 
+limiter = Limiter(key_func=get_remote_address)
+
+app.state.limiter = limiter
+app.add_exception_handler(
+    RateLimitExceeded,
+    _rate_limit_exceeded_handler
+)
+
+
+# creating a middleware to log every requests 
+@app.middleware("http")
+async def log_requests(request, call_next):
+    start_time = time.perf_counter()
+
+    try:
+        response = await call_next(request)
+        duration = time.perf_counter() - start_time
+
+        logger.info(
+            "%s %s | Status: %s | Duration: %.3fs",
+            request.method,
+            request.url.path,
+            response.status_code,
+            duration
+        )
+        return response
+    
+    except Exception:
+        logger.exception("Request failed: %s %s", request.method, request.url.path)
+        raise
+
 
 # Defining input schema for Compound prediction using Pydantic
 class CompoundInput(BaseModel):
@@ -167,7 +215,8 @@ class SimulateRaceRequest(BaseModel):
  
 
 @app.post("/fetch-compound-data")
-def fetch_compound(data: CompoundFetchRequest):
+@limiter.limit("15/minute")  # introducing 10 request per minute rate limit
+async def fetch_compound(request: Request, data: CompoundFetchRequest):
     add_features = FeatureConfig(
         data.driver,
         data.grid_position,
@@ -181,7 +230,8 @@ def fetch_compound(data: CompoundFetchRequest):
 
 
 @app.post("/fetch-stint-data")
-def fetch_stint(data: StintFetchRequest):
+@limiter.limit("15/minute") # introducing 10 request per minute rate limit
+async def fetch_stint(request: Request, data: StintFetchRequest):
     add_features = FeatureConfig(
         data.driver,
         data.grid_position,
@@ -195,7 +245,8 @@ def fetch_stint(data: StintFetchRequest):
 
 
 @app.post("/predict-compound", response_model=PredictionResponseCompound)
-async def pred_compound_endpoint(data: CompoundInput):
+@limiter.limit("15/minute") # introducing 10 request per minute rate limit
+async def pred_compound_endpoint(request: Request, data: CompoundInput):
     # model_dump() functiion converts the input into dictionary format
     prediction = predict_compound(data.model_dump())
     
@@ -213,7 +264,8 @@ async def pred_compound_endpoint(data: CompoundInput):
 
 
 @app.post("/predict-stint", response_model=PredictionResponseStint)
-async def pred_stint_endpoint(data: StintInput):
+@limiter.limit("15/minute") # introducing 10 request per minute rate limit
+async def pred_stint_endpoint(request: Request, data: StintInput):
     # model_dumo() functiion converts the input into dictionary format
     prediction = predict_stint(data.model_dump())
     return PredictionResponseStint(
@@ -222,7 +274,8 @@ async def pred_stint_endpoint(data: StintInput):
 
   
 @app.post("/simulate-race")
-async def simulate_race(data: SimulateRaceRequest):
+@limiter.limit("15/minute") # introducing 10 request per minute rate limit
+async def simulate_race(request: Request, data: SimulateRaceRequest):
     race_instance = SimulateRace(
         data.selected_gp,
         data.driver,

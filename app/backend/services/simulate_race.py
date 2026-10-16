@@ -106,6 +106,11 @@ class SimulateRace:
         remaining_laps = data['race_laps'] - first_stint
         pit_loss = data['pit_loss']
 
+        # if the model predicts first stint less then 10 laps that is unrealistic
+        if first_stint < 10:
+            diff = 10 - first_stint
+            first_stint = first_stint + diff
+
         if pit_loss is None or pd.isna(pit_loss):
             raise ValueError("Pit-loss data is missing.")
 
@@ -164,6 +169,11 @@ class SimulateRace:
         first_stint = int(data['first_stint'])
         remaining_laps = data['race_laps'] - first_stint
         pit_loss = data['pit_loss']
+
+        # if the model predicts first stint less then 10 laps that is unrealistic
+        if first_stint < 10:
+            diff = 10 - first_stint
+            first_stint = first_stint + diff
 
         strategies = []
 
@@ -225,12 +235,13 @@ class SimulateRace:
             strategies, key = lambda x: x["race_time"]
         )
 
-    # A function to handle if there is no 
+    # A function to handle if there is no valid strategy
     def safe_strategy(self, strategy_func, data):
         try:
             return strategy_func(data)
         except ValueError:
-            return {"race_time":99999}
+            # race time must be returned so it won't cause errors. But it will return an overly large number so it won't be selected
+            return {"race_time":999999}
 
     def calculate_strategy(self, data: dict):
         starting_compound = data['starting_compound']
