@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+  api:
+    build: ./backend
+    container_name: f1_strategy-api
+    ports:
+      - "8000:8000"
+ 
+  streamlit:
+    build: ./frontend
+    container_name: f1_strategy-streamlit
+    ports:
+      - "8501:8501"
+    depends_on:
+      - api
