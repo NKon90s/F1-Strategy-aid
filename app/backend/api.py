@@ -266,7 +266,7 @@ async def pred_compound_endpoint(request: Request, data: CompoundInput):
 @app.post("/predict-stint", response_model=PredictionResponseStint)
 @limiter.limit("15/minute") # introducing 10 request per minute rate limit
 async def pred_stint_endpoint(request: Request, data: StintInput):
-    # model_dumo() functiion converts the input into dictionary format
+    # model_dump() functiion converts the input into dictionary format
     prediction = predict_stint(data.model_dump())
     return PredictionResponseStint(
         first_stint_length = prediction

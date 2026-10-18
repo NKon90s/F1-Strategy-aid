@@ -121,19 +121,3 @@ class FeatureConfig:
             "avg_soft_stint_by_driver": driver_data['avg_soft_stint_by_driver'].iloc[0]
         })
     
-
-if __name__ == "__main__":
-
-
-    driver = "Max VERSTAPPEN"
-    grid_position = 1
-    asphalt_temperature = 35
-    selected_gp ="Saudi Arabian Grand Prix"
-    starting_compound = 'SOFT'
-    
-    instance = FeatureConfig(driver, grid_position, asphalt_temperature, selected_gp)
-
-    response = instance.fetch_compound_params()
-    response2 = instance.fetch_stint_params(starting_compound)
-    print(response)
-    print(response2)

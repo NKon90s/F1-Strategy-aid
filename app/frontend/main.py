@@ -470,7 +470,7 @@ with col3:
 #======================================================
 
 # URL of the API
-API_URL = "http://127.0.0.1:9999"
+API_URL = "http://api:8000"
 # endpoints of the API
 predict_compound = f"/predict-compound"
 predict_stint = f"/predict-stint"
