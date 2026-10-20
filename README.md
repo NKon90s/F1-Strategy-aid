@@ -51,7 +51,7 @@ The following databases have been used to create the training data. The staging 
     - mart_strategy_prediction_features
     - mart_tyre_prediction_features
 
-
+ 
 ## The prediction models
 
 (At the moment) Two machine learning models form the foundation of the race strategy determination process: a starting compound prediction model and a first-stint prediction model. Both models are based on the `XGBoost framework`, with `XGBClassifier` used to predict the starting tyre compound and `XGBRegressor` employed to estimate the duration of the first stint.
@@ -116,7 +116,7 @@ The model exhibits a bias toward selecting the `MEDIUM` compound, likely reflect
 
 ![compound distribution](imgs/compound_distribution.png)
 
-herefore, the model's strongest performance in identifying the `MEDIUM` compound is consistent with the observed historical trends. Although its predictive accuracy for the `HARD` and `SOFT` compounds is comparatively lower, its overall performance remains acceptable. As additional data becomes available, the model's predictive capabilities could be further improved through continued training and refinement.
+Therefore, the model's strongest performance in identifying the `MEDIUM` compound is consistent with the observed historical trends. Although its predictive accuracy for the `HARD` and `SOFT` compounds is comparatively lower, its overall performance remains acceptable. As additional data becomes available, the model's predictive capabilities could be further improved through continued training and refinement.
 
 The model is evaluated based on the following metrics: 
 
@@ -173,5 +173,41 @@ Several approaches could help improve the model's performance. First, expanding 
 
 ![other scores](imgs/XGboost_scores.png)
 
-  
+   
 ### 2. First Stint prediction model
+
+The following metric applied to evaluate the stint prediction model, which was a regression task:
+
+- **Mean Absolute Error (MAE)**: which is the average difference between actual and predicted values.
+- **Root Mean Squared Error (RMSE)**: which is the root of average squared difference between predicted and actual values, so basically the square of MSE. It Penalizes larger errors more than MAE. It brings back the error metric to the same unit scale as the target variable. 
+- **R-Squared**: is a statistical measure that represents the goodness of fit of a regression model. The value of R-square lies between 0 to 1. Where we get R-square equals 1 when the model perfectly fits the data and there is no difference between the predicted value and actual value.  However, we get R-square equals 0 when the model does not predict any variability in the model and it does not learn any relationship between the dependent and independent variables.
+
+These scores for the model are the following:
+
+![Regression Scores](imgs/XGBRegression_scores.png)
+
+Visualizing RMSE serves as a proof that the model is overall pretty accurate in the predictions.
+
+![RMSE](imgs/stint_prediction_accuracy.png)
+
+
+## Architecture
+
+The Tool contains a Backend and a Frontend (streamlit dashboard) both is containerized via Docker. 
+
+1. **The Backend**
+It contains the `Prediction Models` and services such as `Feature Mapping`, `Race Simulation`. All incorporated into a FAST API. 
+
+2. **Frontend**
+It contains the `Streamlit` interface. That is ready to recieve user input and also contains the `Strategy Selection Logic`.
+
+**Architecture Diagram**
+
+![architecture](imgs/architecture_diagram.png)
+
+
+## Future Work
+- Automatically retrain the ML models as the ELT pipeline fetches new data
+- Host the tool in cloud
+- Change the initial strategy based on race progression
+- Improve the UI, so it will be more intuitive
