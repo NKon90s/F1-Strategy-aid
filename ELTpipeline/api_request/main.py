@@ -2,6 +2,7 @@ from . import api_request
 from . import db_connector
 from . import create_db
 from . import insert_records
+import datetime
  
 def create_database():
     conn = db_connector.connect_to_db()
@@ -33,7 +34,10 @@ def data_to_db():
     # establishing the connection to the DB
     conn = db_connector.connect_to_db()
     try:
-        year = 2025
+        # fetching current year's data 
+        today = datetime.date.today()
+        curr_year = today.year
+        year = curr_year
         
         f1_request = api_request.APIrequest(year)
         # Inserting data into the created tables
