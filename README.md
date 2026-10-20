@@ -5,7 +5,13 @@ This project aims to serve as an aid for F1 tyre strategy decisions. It helps to
 
 ## Table of contents 
 
-
+- [Requirements](#requirements)
+- [ELT Pipeline](#elt-pipeline)
+- [The Prediction Models](#the-prediction-models)
+- [Model Evaluation](#model-evaluation)
+- [Architecture](#architecture)
+- [How to run](#how-to-run)
+- [Future Work](#future-work)
 
 
 ## Requirements 
@@ -206,7 +212,25 @@ It contains the `Streamlit` interface. That is ready to recieve user input and a
 ![architecture](imgs/architecture_diagram.png)
 
 
+## How to run
+
+Until it is not hosted in cloud you can run it in a following way:
+
+Clone the repository. 
+
+`git clone https://github.com/NKon90s/F1-Strategy-aid.git`
+
+You should also have Docker Desktop installed.
+
+Navigate to /app folder.
+
+`docker-compose up`
+
+Now you can open Streamlit in the browser. It will likely be `http://localhost:8501` and use it.
+
+
 ## Future Work
+
 - Automatically retrain the ML models as the ELT pipeline fetches new data
 - Host the tool in cloud
 - Change the initial strategy based on race progression
