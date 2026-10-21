@@ -1,6 +1,10 @@
 # F1 Strategy Aid 
   
-This project aims to serve as an aid for F1 tyre strategy decisions. It helps to determine the initial tyre and pit stop strategy via machine learning tools and race simulation techniques. The base data is fetched from [OpenF1 Api](https://openf1.org/). 
+This project aims to serve as an aid for F1 tyre strategy decisions. It helps to determine the initial tyre and pit stop strategy via machine learning tools and race simulation techniques. Later it is planned to be extended with during-race predictions, too. 
+
+The base data is fetched from [OpenF1 Api](https://openf1.org/). 
+
+**Note:** *This application is for fun and educational purposes only. This application most likely will never achieve the precision of real F1 teams' prediction capabilities. They have enormous amount of data from test events, historical race data, sensor data and so on, which are not public. Therefore replicating the same level of precision with only Open F1 data and without the insider F1 know-how is very close to impossible.*
 
 
 ## Table of contents 
