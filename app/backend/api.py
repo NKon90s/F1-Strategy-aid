@@ -1,9 +1,8 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, model_validator, ValidationError, Field
+from fastapi import FastAPI
+from pydantic import BaseModel, model_validator, Field
 from typing import Annotated, Literal
 import uvicorn
 from services.predict import predict_compound, predict_stint
-import pandas as pd
 from services.featuremap import FeatureConfig
 from services.simulate_race import SimulateRace
 import logging 
@@ -312,4 +311,4 @@ def ping():
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=9999)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
