@@ -375,6 +375,11 @@ safety_car_options = [
     "High"
 ]
 
+event_type = [
+    "Qualifying",
+    "Sprint",
+    "Race"
+]
 
 
 # ============================================================
@@ -424,9 +429,9 @@ with col1:
         list(range(1, 21))
     )
 
-    tyre_age_at_start = st.selectbox(
-        "Tyre Degradation",
-        list(range(0,6))
+    event = st.selectbox(
+        "Event Type",
+        event_type
     )
 
 with col2:
