@@ -9,6 +9,7 @@ The base data is fetched from [OpenF1 Api](https://openf1.org/).
 
 ## Table of contents 
 
+- [How does it work?](#how-does-it-work-)
 - [Requirements](#requirements)
 - [ELT Pipeline](#elt-pipeline)
 - [The Prediction Models](#the-prediction-models)
@@ -16,6 +17,17 @@ The base data is fetched from [OpenF1 Api](https://openf1.org/).
 - [Architecture](#architecture)
 - [How to run](#how-to-run)
 - [Future Work](#future-work)
+
+
+## How does it work ?
+
+The user is expected to select the Driver, The Grand Prix, The grid position, weather and temperature data and the event type as seen below:
+
+![frontend1](imgs/frontned1.png)
+
+After hitting Generate Strategy button the following dashboard appears, containing a recommended and an alternative strategy:
+
+![frontend2](imgs/frontend2.png)
 
 
 ## Requirements 
@@ -67,6 +79,15 @@ The following databases have been used to create the training data. The staging 
 (At the moment) Two machine learning models form the foundation of the race strategy determination process: a starting compound prediction model and a first-stint prediction model. Both models are based on the `XGBoost framework`, with `XGBClassifier` used to predict the starting tyre compound and `XGBRegressor` employed to estimate the duration of the first stint.
 
 In addition, `Linear Regression` is used during feature engineering to estimate tyre degradation for each compound, providing an additional input for the strategy prediction process.
+
+**Training Method**
+
+At the point of training the models 3 years of race data were available. Both `Starting Compound Prediction` and `First Stint Prediction` models are trained on 2023 and 2024 data and evaluated on 2025 data. The validation is done via a walk-forward method. 
+
+Each race instance is considered separately, because it was crucial to avoid mixing distinct race instances. 
+
+The models evaluated on 2023-24 data and 2025 data that is already happened. After the walk-forward evaluation is completed, the data is retrained on the whole dataset (2023-24-25 data).
+
 
 **Data**
 
@@ -190,7 +211,7 @@ The following metric applied to evaluate the stint prediction model, which was a
 
 - **Mean Absolute Error (MAE)**: which is the average difference between actual and predicted values.
 - **Root Mean Squared Error (RMSE)**: which is the root of average squared difference between predicted and actual values, so basically the square of MSE. It Penalizes larger errors more than MAE. It brings back the error metric to the same unit scale as the target variable. 
-- **R-Squared**: is a statistical measure that represents the goodness of fit of a regression model. The value of R-square lies between 0 to 1. Where we get R-square equals 1 when the model perfectly fits the data and there is no difference between the predicted value and actual value.  However, we get R-square equals 0 when the model does not predict any variability in the model and it does not learn any relationship between the dependent and independent variables.
+- **R-Square**: is a statistical measure that represents the goodness of fit of a regression model. The value of R-square lies between 0 to 1. Where we get R-square equals 1 when the model perfectly fits the data and there is no difference between the predicted value and actual value.  However, we get R-square equals 0 when the model does not predict any variability in the model and it does not learn any relationship between the dependent and independent variables.
 
 These scores for the model are the following:
 
