@@ -454,7 +454,7 @@ with col3:
         min_value=15.0,
         max_value=65.0,
         value=35.0,
-        step=1.0
+        step=0.1
     )
 
     air_temperature = st.slider(
@@ -462,7 +462,7 @@ with col3:
         min_value=5.0,
         max_value=50.0,
         value=25.0,
-        step=1.0
+        step=0.1
     )
 
 #======================================================
